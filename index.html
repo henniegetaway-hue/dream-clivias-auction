@@ -362,7 +362,7 @@ th,td{
 }
 
 @media(max-width:1050px){
-  .lotsGrid{grid-template-columns:repeat(3,1fr)}
+  .lotsGrid{grid-template-columns:repeat(4,1fr)}
 }
 
 @media(max-width:780px){
@@ -406,7 +406,7 @@ th,td{
   <button id="navRegister" onclick="showPage('register')">Register</button>
   <button id="navLive" onclick="showPage('live')">Live Auction</button>
   <button id="navAdmin" onclick="showPage('admin')">Admin</button>
-  <button id="navInvoices" onclick="showPage('invoices')">Invoices</button>
+  <button id="navInvoices" onclick="showPage('invoices')">Invoices</button><button id="navSeller" onclick="showPage('seller')">Seller</button>
 </nav>
 
 <section id="pageRegister" class="page">
@@ -593,7 +593,44 @@ th,td{
   </div>
 </section>
 
-<section id="pageInvoices" class="page hidden">
+<section id="pageSeller" class="page hidden">
+  <div class="panel">
+    <h2>Seller Registration</h2>
+    <p>Register as a seller to offer your Clivias on Dream Clivias Auction.</p>
+
+    <label>Full name</label>
+    <input id="sellerName" placeholder="Full name">
+
+    <label>WhatsApp number</label>
+    <input id="sellerPhone" placeholder="e.g. 0821234567">
+
+    <label>Email address</label>
+    <input id="sellerEmail" type="email">
+
+    <label>Town</label>
+    <input id="sellerTown">
+
+    <label>Bank name</label>
+    <input id="sellerBank">
+
+    <label>Account holder</label>
+    <input id="sellerAccountName">
+
+    <label>Account number</label>
+    <input id="sellerAccountNumber">
+
+    <label>Branch code</label>
+    <input id="sellerBranchCode">
+
+    <br><br>
+    <button class="goldBtn" onclick="registerSeller()">REGISTER AS SELLER</button>
+
+    <div class="notice">
+      Seller accounts must be approved by Dream Clivias before plants can be listed for auction.
+    </div>
+  </div>
+</section>
+  <section id="pageInvoices" class="page hidden">
   <div class="panel">
     <h2>Invoices</h2>
     <div id="invoiceList">Invoices will be created when the auction is closed.</div>
@@ -610,6 +647,15 @@ th,td{
     <p class="small">Actual plant photo supplied for this auction lot.</p>
   </div>
 </div>
+uality
+Insights
+Settings
+dream-clivias-auction
+/
+index.html
+in
+main
+
 
 <script>
 const STORAGE_KEY = "dreamCliviasAuctionV2";
@@ -625,7 +671,8 @@ let state = {
     branchCode:"",
     open:true
   },
-  bidders:[],
+  bidders:[],sellers:[],
+  
   selectedBidderId:"",
   lots:[],
   invoices:[]
@@ -653,6 +700,7 @@ function showPage(page){
   const map={
     register:["pageRegister","navRegister"],
     live:["pageLive","navLive"],
+    seller:["pageSeller","navSeller"],
     admin:["pageAdmin","navAdmin"],
     invoices:["pageInvoices","navInvoices"]
   };
@@ -672,7 +720,36 @@ function updateHeader(){
   document.getElementById("auctionStatus").textContent=state.settings.open?"OPEN":"CLOSED";
 }
 
-function registerBidder(){
+function registerSeller(){
+  const name=document.getElementById("sellerName").value.trim();
+  const phone=document.getElementById("sellerPhone").value.trim();
+  const email=document.getElementById("sellerEmail").value.trim();
+
+  if(!name || !phone || !email){
+    alert("Please enter your name, WhatsApp number and email.");
+    return;
+  }
+
+  const seller={
+    id:"S"+Date.now(),
+    name,
+    phone,
+    email,
+    town:document.getElementById("sellerTown").value.trim(),
+    bank:document.getElementById("sellerBank").value.trim(),
+    accountName:document.getElementById("sellerAccountName").value.trim(),
+    accountNumber:document.getElementById("sellerAccountNumber").value.trim(),
+    branchCode:document.getElementById("sellerBranchCode").value.trim(),
+    approved:false
+  };
+
+  state.sellers=state.sellers||[];
+  state.sellers.push(seller);
+  save();
+
+  alert("Seller registration submitted. Dream Clivias must approve you before you can list plants.");
+}
+  function registerBidder(){
   const name=document.getElementById("regName").value.trim();
   const phone=document.getElementById("regPhone").value.trim();
 
