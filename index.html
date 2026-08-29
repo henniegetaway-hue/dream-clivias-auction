@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dream Clivias Auction</title>
+<style>
+:root{--bg:#080b09;--panel:#111712;--panel2:#171f18;--gold:#d8ad43;--gold2:#f0cf73;--green:#7cc76e;--text:#f4f1e8;--muted:#aab6aa;--danger:#d86969;--ok:#74c980;--line:#2b382d}
+*{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#060806,#0c120d);color:var(--text)}
+button,input,select,textarea{font:inherit}.app{max-width:1250px;margin:auto;min-height:100vh;padding:18px}.top{display:flex;gap:20px;align-items:center;padding:14px 18px;border:1px solid #3d3320;border-radius:18px;background:linear-gradient(135deg,#101610,#17180f);box-shadow:0 10px 35px #0008}.logo{width:190px;max-height:115px;object-fit:contain}.brand h1{margin:0;color:var(--gold2);font-family:Georgia,serif;font-size:31px}.brand p{margin:5px 0;color:#d7d0bd}.status{margin-left:auto;text-align:right}.pill{display:inline-block;padding:7px 11px;border-radius:999px;background:#263528;border:1px solid #4c684f;color:#bfe8c3;font-weight:700}.pill.closed{background:#3a2424;border-color:#704646;color:#efb4b4}.nav{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0}.nav button{background:#141b15;color:#ddd;border:1px solid #334036;padding:10px 16px;border-radius:10px;cursor:pointer}.nav button.active{background:var(--gold);color:#161108;border-color:var(--gold2);font-weight:800}.view{display:none}.view.active{display:block}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.panel{background:linear-gradient(180deg,#111812,#0d120e);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 24px #0005}.panel h2,.panel h3{margin-top:0;color:var(--gold2)}label{display:block;color:#d7dfd7;font-size:13px;margin:10px 0 5px}.field{width:100%;background:#090d0a;border:1px solid #364238;color:#fff;border-radius:9px;padding:10px}.row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.btn{border:0;border-radius:10px;padding:11px 15px;cursor:pointer;font-weight:800;background:var(--gold);color:#181208}.btn.secondary{background:#263328;color:#e5eade}.btn.danger{background:#6e2d2d;color:white}.btn.ok{background:#2f6d39;color:white}.btn.small{padding:7px 10px;font-size:13px}.notice{padding:11px 13px;border-left:4px solid var(--gold);background:#191a11;border-radius:8px;margin:10px 0;color:#e5dfcb}.lot{overflow:hidden;padding:0}.lothead{padding:13px 15px;background:#151c16;border-bottom:1px solid #2e3c30;display:flex;justify-content:space-between;align-items:center}.lotnum{color:var(--gold2);font-weight:900;font-size:18px}.photos{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#243027}.photo{width:100%;height:190px;object-fit:cover;background:#202920}.phlabel{position:absolute;background:#000a;color:white;padding:5px 8px;border-radius:7px;margin:7px;font-size:11px}.photoWrap{position:relative;background:#151c16}.lotbody{padding:15px}.price{font-size:26px;color:#f4d47f;font-weight:900}.next{color:#a9d9ac;font-size:14px}.meta{color:#b8c2b8;font-size:13px;margin-top:8px}.bidbox{display:flex;gap:8px;margin-top:12px}.bidbox input{flex:1}.history{font-size:12px;color:#b6c0b6;margin-top:10px;border-top:1px solid #28332a;padding-top:8px}.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;background:#0d120e}th,td{padding:10px;border-bottom:1px solid #263028;text-align:left;white-space:nowrap}th{background:#161d17;color:#e5c86e;font-size:13px}td{font-size:13px}.right{text-align:right}.empty{text-align:center;color:#8f9a90;padding:35px}.winner{border:1px solid #4f6d52;background:#132016}.invoice{border:1px solid #554723;background:#13130e}.thumb{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #3f4c40}.flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.spacer{flex:1}.muted{color:var(--muted)}.big{font-size:28px;font-weight:900;color:var(--gold2)}.tag{background:#263027;border:1px solid #405143;border-radius:7px;padding:4px 7px;font-size:12px}.footer{text-align:center;color:#6f796f;font-size:12px;padding:25px}.adminlock{max-width:420px;margin:30px auto}.hidden{display:none!important}@media(max-width:650px){.top{align-items:flex-start}.logo{width:110px}.brand h1{font-size:23px}.status{font-size:12px}.row,.row3{grid-template-columns:1fr}.photos{grid-template-columns:1fr}.photo{height:250px}.app{padding:10px}}
+@media print{body{background:#fff;color:#000}.noPrint,.top,.nav,.footer{display:none!important}.panel{box-shadow:none;border:0;background:white;color:#000}.invoicePrint{display:block!important}.invoicePrint *{color:#000!important}.photo{max-width:220px;height:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top noPrint">
+    <img class="logo" src="dream-clivias-logo.png" alt="Dream Clivias logo">
+    <div class="brand"><h1>Dream Clivias Auction</h1><p>Rare • Exquisite • Timeless</p></div>
+    <div class="status"><span id="auctionStatus" class="pill">OPEN</span><div class="muted" id="auctionTitleTop">Live Auction</div></div>
+  </div>
+  <div class="nav noPrint">
+    <button data-view="register" class="active">Register</button>
+    <button data-view="auction">Live Auction</button>
+    <button data-view="admin">Admin</button>
+    <button data-view="invoices">Invoices</button>
+  </div>
+
+  <section id="register" class="view active noPrint">
+    <div class="grid">
+      <div class="panel">
+        <h2>Bidder Registration</h2>
+        <p class="muted">Register once before bidding.</p>
+        <label>Full name</label><input id="regName" class="field" placeholder="e.g. Johan Smit">
+        <div class="row"><div><label>WhatsApp number</label><input id="regPhone" class="field" placeholder="e.g. 0821234567"></div><div><label>Email (optional)</label><input id="regEmail" class="field" type="email"></div></div>
+        <div class="row"><div><label>Town</label><input id="regTown" class="field"></div><div><label>Province</label><select id="regProvince" class="field"><option>Western Cape</option><option>Eastern Cape</option><option>Northern Cape</option><option>Free State</option><option>Gauteng</option><option>KwaZulu-Natal</option><option>Limpopo</option><option>Mpumalanga</option><option>North West</option></select></div></div>
+        <label>Delivery method</label><select id="regDelivery" class="field" onchange="updateDeliveryFields()"><option>PostNet to PostNet</option><option>The Courier Guy</option><option>Collection</option><option>Other Courier</option></select>
+        <div id="deliveryDetailsWrap"><label id="deliveryDetailsLabel">Preferred PostNet branch</label><input id="regDeliveryDetails" class="field" placeholder="e.g. Brackenfell PostNet"></div>
+        <label><input type="checkbox" id="regTerms"> I accept the auction rules and agree that winning bids are payable.</label>
+        <button class="btn" onclick="registerBidder()">REGISTER TO BID</button>
+        <div id="regResult"></div>
+      </div>
+      <div class="panel">
+        <h2>Already registered?</h2>
+        <p class="muted">For this test version, select your bidder profile on this device.</p>
+        <label>Select bidder</label><select id="bidderSelect" class="field" onchange="setActiveBidder(this.value)"></select>
+        <div id="activeBidderCard" class="notice"></div>
+        <h3>Auction Rules</h3>
+        <p>Only registered bidders can place bids. Each valid bid must meet the minimum next bid. The highest valid bid when the auction closes wins the lot. All previous bids remain saved in the history.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="auction" class="view noPrint">
+    <div class="panel" style="margin-bottom:14px"><div class="flex"><div><h2 id="auctionHeading" style="margin-bottom:4px">Live Auction</h2><div class="muted" id="activeBidderAuction">No bidder selected</div></div><div class="spacer"></div><span class="tag" id="defaultIncBadge"></span></div></div>
+    <div id="lotsGrid" class="grid"></div>
+  </section>
+
+  <section id="admin" class="view noPrint">
+    <div id="adminLogin" class="panel adminlock"><h2>Admin Access</h2><p class="muted">Test password: <b>1234</b></p><input id="adminPass" type="password" class="field" placeholder="Password"><br><br><button class="btn" onclick="unlockAdmin()">OPEN ADMIN</button></div>
+    <div id="adminArea" class="hidden">
+      <div class="grid">
+        <div class="panel"><h2>Auction Settings</h2>
+          <label>Auction name</label><input id="setTitle" class="field">
+          <div class="row"><div><label>Default minimum bid increase (R)</label><input id="setDefaultInc" type="number" class="field"></div><div><label>Default delivery charge (R)</label><input id="setDelivery" type="number" class="field"></div></div>
+          <div class="row"><div><label>Bank name</label><input id="setBank" class="field"></div><div><label>Account name</label><input id="setAccName" class="field"></div></div>
+          <div class="row"><div><label>Account number</label><input id="setAccNo" class="field"></div><div><label>Branch code</label><input id="setBranch" class="field"></div></div>
+          <button class="btn" onclick="saveSettings()">SAVE SETTINGS</button>
+          <hr style="border-color:#2a352b;margin:18px 0">
+          <div class="flex"><button class="btn ok" onclick="openAuction()">OPEN AUCTION</button><button class="btn danger" onclick="closeAuction()">CLOSE AUCTION + CREATE INVOICES</button></div>
+        </div>
+        <div class="panel"><h2>Add Auction Lot</h2>
+          <label>Name / Cross</label><input id="lotName" class="field" placeholder="e.g. Green Throat × White Stripe">
+          <div class="row3"><div><label>Leaves</label><input id="lotLeaves" type="number" class="field"></div><div><label>Offsets</label><input id="lotOffsets" type="number" class="field"></div><div><label>Start bid (R)</label><input id="lotStart" type="number" class="field"></div></div>
+          <label>Minimum increase for this lot (R) — leave blank for default</label><input id="lotInc" type="number" class="field">
+          <div class="row"><div><label>Flower photo</label><input id="flowerPhoto" type="file" accept="image/*" class="field"></div><div><label>Actual plant photo</label><input id="plantPhoto" type="file" accept="image/*" class="field"></div></div>
+          <button class="btn" onclick="addLot()">+ ADD LOT / ROW</button><div id="photoMsg" class="muted" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:14px"><div class="flex"><h2>Lots</h2><div class="spacer"></div><button class="btn secondary small" onclick="exportBackup()">EXPORT BACKUP</button><label class="btn secondary small" style="margin:0;cursor:pointer">IMPORT BACKUP<input type="file" accept="application/json" style="display:none" onchange="importBackup(this.files[0])"></label><button class="btn danger small" onclick="clearTestData()">CLEAR TEST DATA</button></div><div id="adminLots"></div></div>
+      <div class="panel" style="margin-top:14px"><h2>Registered Bidders</h2><div id="biddersTable"></div></div>
+    </div>
+  </section>
+
+  <section id="invoices" class="view noPrint"><div class="panel"><div class="flex"><h2>Winner Invoices</h2><div class="spacer"></div><span class="muted">Created automatically when auction closes</span></div><div id="invoiceList"></div></div></section>
+
+  <section id="invoicePrint" class="invoicePrint hidden"></section>
+  <div class="footer noPrint">Dream Clivias Auction Prototype • Data is stored only in this browser/device for testing.</div>
+</div>
+<script>
+const KEY='dreamCliviasAuction_v1';
+let db = JSON.parse(localStorage.getItem(KEY)||'null') || {settings:{title:'Dream Clivias Live Auction',defaultInc:50,delivery:0,bank:'',accName:'Dream Clivias',accNo:'',branch:''},status:'open',bidders:[],lots:[],bids:[],invoices:[],activeBidder:null,nextBidder:1001,nextLot:1,nextInvoice:1};
+function save(){localStorage.setItem(KEY,JSON.stringify(db)); renderAll()}
+function money(n){return 'R'+Number(n||0).toLocaleString('en-ZA',{minimumFractionDigits:0,maximumFractionDigits:2})}
+function esc(s){return String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function now(){return new Date().toISOString()}
+function normalizePhone(p){let x=String(p||'').replace(/\D/g,''); if(x.startsWith('0')) x='27'+x.slice(1); return x}
+function nav(view){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(view).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===view));renderAll()}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>nav(b.dataset.view));
+async function imageToData(file){if(!file) return ''; return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height,max=900;if(w>max||h>max){let q=Math.min(max/w,max/h);w=Math.round(w*q);h=Math.round(h*q)}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);resolve(c.toDataURL('image/jpeg',.78))};img.onerror=reject;img.src=e.target.result};r.onerror=reject;r.readAsDataURL(file)})}
+function updateDeliveryFields(){let v=regDelivery.value,w=document.getElementById('deliveryDetailsWrap'),l=document.getElementById('deliveryDetailsLabel'),i=document.getElementById('regDeliveryDetails');if(v==='Collection'){w.classList.add('hidden');i.value='';return}w.classList.remove('hidden');if(v==='PostNet to PostNet'){l.textContent='Preferred PostNet branch';i.placeholder='e.g. Brackenfell PostNet'}else if(v==='The Courier Guy'){l.textContent='Delivery address / PUDO point';i.placeholder='Street address or preferred PUDO locker/point'}else{l.textContent='Courier / delivery details';i.placeholder='Enter delivery instructions'}}
+function registerBidder(){let name=regName.value.trim(),phone=regPhone.value.trim();if(!name||!phone||!regTerms.checked){regResult.innerHTML='<div class="notice">Please enter name, WhatsApp number and accept the rules.</div>';return}let np=normalizePhone(phone);let ex=db.bidders.find(b=>normalizePhone(b.phone)===np);if(ex){db.activeBidder=ex.id;regResult.innerHTML=`<div class="notice">Already registered as <b>${ex.id}</b>.</div>`;save();return}let b={id:'DC-'+db.nextBidder++,name,phone,email:regEmail.value.trim(),town:regTown.value.trim(),province:regProvince.value,delivery:regDelivery.value,deliveryDetails:regDeliveryDetails.value.trim(),registered:now()};db.bidders.push(b);db.activeBidder=b.id;regResult.innerHTML=`<div class="notice">Registered successfully. Your Bidder ID is <b>${b.id}</b>.</div>`;save()}
+function setActiveBidder(id){db.activeBidder=id||null;save()}
+function activeBidder(){return db.bidders.find(b=>b.id===db.activeBidder)}
+function highestBid(lotId){let bs=db.bids.filter(b=>b.lotId===lotId).sort((a,b)=>b.amount-a.amount||new Date(b.time)-new Date(a.time));return bs[0]||null}
+function nextBid(lot){let h=highestBid(lot.id),inc=Number(lot.inc||db.settings.defaultInc||1);return h?Number(h.amount)+inc:Number(lot.start||0)}
+function placeBid(lotId){let lot=db.lots.find(l=>l.id===lotId),bidder=activeBidder();if(db.status!=='open') return alert('Auction is closed.');if(!bidder) return alert('Please register/select your bidder profile first.');let inp=document.getElementById('bid-'+lotId),amount=Number(inp.value);let min=nextBid(lot);if(!amount||amount<min){alert('Minimum next bid is '+money(min));return}db.bids.push({id:'B'+Date.now()+Math.random(),lotId,bidderId:bidder.id,amount,time:now()});inp.value='';save()}
+function saveSettings(){db.settings.title=setTitle.value.trim()||db.settings.title;db.settings.defaultInc=Number(setDefaultInc.value||50);db.settings.delivery=Number(setDelivery.value||0);db.settings.bank=setBank.value.trim();db.settings.accName=setAccName.value.trim();db.settings.accNo=setAccNo.value.trim();db.settings.branch=setBranch.value.trim();save();alert('Settings saved.')}
+async function addLot(){let name=lotName.value.trim(),start=Number(lotStart.value);if(!name||!start){alert('Enter a lot name/cross and starting bid.');return}photoMsg.textContent='Preparing photos...';let flower=await imageToData(flowerPhoto.files[0]),plant=await imageToData(plantPhoto.files[0]);db.lots.push({id:'LOT-'+String(db.nextLot++).padStart(3,'0'),name,leaves:Number(lotLeaves.value||0),offsets:Number(lotOffsets.value||0),start,inc:Number(lotInc.value||0),flower,plant,created:now()});lotName.value=lotLeaves.value=lotOffsets.value=lotStart.value=lotInc.value='';flowerPhoto.value=plantPhoto.value='';photoMsg.textContent='Lot added.';save()}
+function deleteLot(id){if(!confirm('Delete this lot and its bid history?'))return;db.lots=db.lots.filter(l=>l.id!==id);db.bids=db.bids.filter(b=>b.lotId!==id);save()}
+function openAuction(){db.status='open';db.invoices=[];save();alert('Auction is OPEN.')}
+function closeAuction(){if(!confirm('Close auction now? No more bids will be accepted and winner invoices will be created.'))return;db.status='closed';createInvoices();save();nav('invoices')}
+function createInvoices(){db.invoices=[];let winners={};db.lots.forEach(l=>{let h=highestBid(l.id);if(!h)return;(winners[h.bidderId]??=[]).push({lotId:l.id,amount:h.amount})});Object.entries(winners).forEach(([bidderId,items])=>{let b=db.bidders.find(x=>x.id===bidderId);let delivery=b?.delivery==='Collection'?0:Number(db.settings.delivery||0);db.invoices.push({id:'DC-INV-'+String(db.nextInvoice++).padStart(4,'0'),bidderId,items,delivery,status:'UNPAID',sent:false,created:now()})})}
+function invoiceTotal(inv){return inv.items.reduce((s,i)=>s+Number(i.amount),0)+Number(inv.delivery||0)}
+function whatsappText(inv){let b=db.bidders.find(x=>x.id===inv.bidderId);let lines=[`🌺 DREAM CLIVIAS — AUCTION WINNER`,`Invoice: ${inv.id}`,`Buyer: ${b?.name||''}`,''];inv.items.forEach(i=>{let l=db.lots.find(x=>x.id===i.lotId);lines.push(`${i.lotId} — ${l?.name||''} — ${money(i.amount)}`)});if(b?.delivery)lines.push(`Delivery method: ${b.delivery}`);if(b?.deliveryDetails)lines.push(`Delivery details: ${b.deliveryDetails}`);if(inv.delivery)lines.push(`Delivery charge — ${money(inv.delivery)}`);lines.push('',`TOTAL DUE: ${money(invoiceTotal(inv))}`,`Payment reference: ${inv.id}`);if(db.settings.bank||db.settings.accNo){lines.push('',`Bank: ${db.settings.bank}`,`Account: ${db.settings.accName}`,`Account no: ${db.settings.accNo}`,`Branch: ${db.settings.branch}`)}lines.push('','Thank you — Dream Clivias');return lines.join('\n')}
+function sendWhatsApp(invId){let inv=db.invoices.find(i=>i.id===invId),b=db.bidders.find(x=>x.id===inv.bidderId);if(!b)return;inv.sent=true;inv.sentTime=now();localStorage.setItem(KEY,JSON.stringify(db));let u='https://wa.me/'+normalizePhone(b.phone)+'?text='+encodeURIComponent(whatsappText(inv));window.open(u,'_blank');renderAll()}
+function simulateAutoSend(){db.invoices.forEach(i=>{i.sent=true;i.sentTime=now()});save();alert('TEST MODE: all invoices marked as automatically sent. Real automatic WhatsApp sending needs a WhatsApp Business API connection.')}
+function markPaid(id){let i=db.invoices.find(x=>x.id===id);i.status=i.status==='PAID'?'UNPAID':'PAID';save()}
+function printInvoice(id){let inv=db.invoices.find(i=>i.id===id),b=db.bidders.find(x=>x.id===inv.bidderId);let items=inv.items.map(i=>{let l=db.lots.find(x=>x.id===i.lotId);return `<tr><td>${esc(i.lotId)}</td><td>${l?.plant?`<img class="thumb" src="${l.plant}">`:''}</td><td>${esc(l?.name)}</td><td class="right">${money(i.amount)}</td></tr>`}).join('');invoicePrint.innerHTML=`<div class="panel"><h1>Dream Clivias</h1><h2>AUCTION INVOICE ${esc(inv.id)}</h2><p><b>Buyer:</b> ${esc(b?.name)}<br><b>WhatsApp:</b> ${esc(b?.phone)}<br><b>Town:</b> ${esc(b?.town)}, ${esc(b?.province)}<br><b>Delivery:</b> ${esc(b?.delivery||'')}<br><b>Delivery details:</b> ${esc(b?.deliveryDetails||'')}</p><table><thead><tr><th>Lot</th><th>Actual Plant</th><th>Name / Cross</th><th class="right">Winning Bid</th></tr></thead><tbody>${items}<tr><td colspan="3">Delivery</td><td class="right">${money(inv.delivery)}</td></tr><tr><td colspan="3"><b>TOTAL DUE</b></td><td class="right"><b>${money(invoiceTotal(inv))}</b></td></tr></tbody></table><h3>Payment Details</h3><p>${esc(db.settings.bank)}<br>${esc(db.settings.accName)}<br>Account: ${esc(db.settings.accNo)}<br>Branch: ${esc(db.settings.branch)}<br><b>Reference: ${esc(inv.id)}</b></p></div>`;invoicePrint.classList.remove('hidden');window.print();setTimeout(()=>invoicePrint.classList.add('hidden'),500)}
+function unlockAdmin(){if(adminPass.value==='1234'){adminLogin.classList.add('hidden');adminArea.classList.remove('hidden');renderAll()}else alert('Incorrect password')}
+function exportBackup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dream-clivias-auction-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function importBackup(file){if(!file)return;let r=new FileReader();r.onload=()=>{try{db=JSON.parse(r.result);save();alert('Backup imported.')}catch(e){alert('Invalid backup file.')}};r.readAsText(file)}
+function clearTestData(){if(confirm('Clear ALL test registrations, lots, bids and invoices?')){localStorage.removeItem(KEY);location.reload()}}
+function renderAll(){
+ auctionStatus.textContent=db.status.toUpperCase();auctionStatus.classList.toggle('closed',db.status!=='open');auctionTitleTop.textContent=db.settings.title;auctionHeading.textContent=db.settings.title;defaultIncBadge.textContent='Default bid increase: '+money(db.settings.defaultInc);
+ setTitle.value=db.settings.title;setDefaultInc.value=db.settings.defaultInc;setDelivery.value=db.settings.delivery;setBank.value=db.settings.bank;setAccName.value=db.settings.accName;setAccNo.value=db.settings.accNo;setBranch.value=db.settings.branch;
+ bidderSelect.innerHTML='<option value="">— Select bidder —</option>'+db.bidders.map(b=>`<option value="${b.id}" ${b.id===db.activeBidder?'selected':''}>${esc(b.name)} (${b.id})</option>`).join('');let ab=activeBidder();activeBidderCard.innerHTML=ab?`Active bidder: <b>${esc(ab.name)}</b> — ${ab.id}`:'No bidder selected yet.';activeBidderAuction.textContent=ab?`Bidding as ${ab.name} (${ab.id})`:'Register or select a bidder before bidding.';
+ lotsGrid.innerHTML=db.lots.length?db.lots.map(l=>{let h=highestBid(l.id),hb=h?db.bidders.find(b=>b.id===h.bidderId):null,history=db.bids.filter(b=>b.lotId===l.id).sort((a,b)=>new Date(b.time)-new Date(a.time));return `<div class="panel lot"><div class="lothead"><span class="lotnum">${l.id}</span><span class="tag">Min +${money(l.inc||db.settings.defaultInc)}</span></div><div class="photos"><div class="photoWrap"><span class="phlabel">FLOWER</span>${l.flower?`<img class="photo" src="${l.flower}">`:`<div class="photo empty">Flower photo</div>`}</div><div class="photoWrap"><span class="phlabel">ACTUAL PLANT</span>${l.plant?`<img class="photo" src="${l.plant}">`:`<div class="photo empty">Plant photo</div>`}</div></div><div class="lotbody"><h3>${esc(l.name)}</h3><div class="price">${h?money(h.amount):money(l.start)}</div><div class="next">${h?`Highest bidder: ${esc(hb?.name||h.bidderId)} • Next minimum ${money(nextBid(l))}`:`Starting bid • First valid bid ${money(l.start)}`}</div><div class="meta">Leaves: ${l.leaves||'—'} &nbsp; • &nbsp; Offsets: ${l.offsets||'—'}</div><div class="bidbox"><input id="bid-${l.id}" type="number" class="field" placeholder="${money(nextBid(l))}" ${db.status!=='open'?'disabled':''}><button class="btn" onclick="placeBid('${l.id}')" ${db.status!=='open'?'disabled':''}>BID</button></div><div class="history">${history.length?`Bid history saved: ${history.length} bid${history.length>1?'s':''}. Latest: ${history.slice(0,3).map(x=>money(x.amount)).join(' → ')}`:'No bids yet.'}</div></div></div>`}).join(''):'<div class="panel empty">No lots loaded yet. Add lots in Admin.</div>';
+ adminLots.innerHTML=db.lots.length?`<div class="tableWrap"><table><thead><tr><th>Lot</th><th>Name/Cross</th><th>Start</th><th>Increase</th><th>Highest</th><th>Bidder</th><th>Bids</th><th></th></tr></thead><tbody>${db.lots.map(l=>{let h=highestBid(l.id),b=h&&db.bidders.find(x=>x.id===h.bidderId);return `<tr><td>${l.id}</td><td>${esc(l.name)}</td><td>${money(l.start)}</td><td>${money(l.inc||db.settings.defaultInc)}</td><td>${h?money(h.amount):'—'}</td><td>${b?esc(b.name):'—'}</td><td>${db.bids.filter(x=>x.lotId===l.id).length}</td><td><button class="btn danger small" onclick="deleteLot('${l.id}')">Delete</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">No lots.</div>';
+ biddersTable.innerHTML=db.bidders.length?`<div class="tableWrap"><table><thead><tr><th>ID</th><th>Name</th><th>WhatsApp</th><th>Town</th><th>Delivery</th><th>Delivery details</th><th>Bids</th><th>Won</th></tr></thead><tbody>${db.bidders.map(b=>`<tr><td>${b.id}</td><td>${esc(b.name)}</td><td>${esc(b.phone)}</td><td>${esc(b.town)}</td><td>${esc(b.delivery)}</td><td>${esc(b.deliveryDetails||'')}</td><td>${db.bids.filter(x=>x.bidderId===b.id).length}</td><td>${db.invoices.find(i=>i.bidderId===b.id)?.items.length||0}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No registered bidders.</div>';
+ invoiceList.innerHTML=db.invoices.length?`<div class="notice"><div class="flex"><b>${db.invoices.length} winner invoice(s) created.</b><div class="spacer"></div><button class="btn ok small" onclick="simulateAutoSend()">AUTO-SEND TEST (SIMULATED)</button></div><div class="muted">For real fully automatic WhatsApp delivery, the live version will connect to WhatsApp Business Cloud API.</div></div>`+db.invoices.map(inv=>{let b=db.bidders.find(x=>x.id===inv.bidderId);let rows=inv.items.map(i=>{let l=db.lots.find(x=>x.id===i.lotId);return `<div class="flex" style="margin:8px 0">${l?.plant?`<img class="thumb" src="${l.plant}">`:''}<div><b>${i.lotId}</b> — ${esc(l?.name)}<br><span class="muted">Winning bid ${money(i.amount)}</span></div></div>`}).join('');return `<div class="panel invoice" style="margin:12px 0"><div class="flex"><div><h3 style="margin:0">${inv.id} — ${esc(b?.name)}</h3><span class="tag">${inv.status}</span> ${inv.sent?'<span class="tag">WHATSAPP SENT/TESTED</span>':''}</div><div class="spacer"></div><div class="big">${money(invoiceTotal(inv))}</div></div>${rows}<div class="flex"><button class="btn small" onclick="sendWhatsApp('${inv.id}')">SEND / OPEN WHATSAPP</button><button class="btn secondary small" onclick="printInvoice('${inv.id}')">PRINT / SAVE INVOICE PDF</button><button class="btn ${inv.status==='PAID'?'secondary':'ok'} small" onclick="markPaid('${inv.id}')">${inv.status==='PAID'?'MARK UNPAID':'MARK PAID'}</button></div></div>`}).join(''):'<div class="empty">No invoices yet. Close an auction with winning bids to create them.</div>';
+}
+updateDeliveryFields();
+renderAll();
+</script>
+</body>
+</html>
