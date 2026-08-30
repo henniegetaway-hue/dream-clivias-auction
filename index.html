@@ -407,6 +407,7 @@ th,td{
   <button id="navLive" onclick="showPage('live')">Live Auction</button>
   <button id="navAdmin" onclick="showPage('admin')">Admin</button>
   <button id="navInvoices" onclick="showPage('invoices')">Invoices</button><button id="navSeller" onclick="showPage('seller')">Seller</button>
+<button id="navRules" onclick="showPage('rules')">Rules & Terms</button>
 </nav>
 
 <section id="pageRegister" class="page">
@@ -447,6 +448,27 @@ th,td{
         </div>
       </div>
 
+      <label>Street address</label>
+<input id="regAddress" placeholder="Street number and street name">
+
+<label>Suburb</label>
+<input id="regSuburb">
+
+<label>Postal / ZIP code</label>
+<input id="regPostal">
+
+<label>Country</label>
+<input id="regCountry" placeholder="e.g. South Africa">
+
+<label>Bank Account Number</label>
+<input id="regAccountNumber">
+
+<label>Default Number</label>
+<input id="regDefaultNumber">
+
+<div class="notice">
+  SECURITY: Your bank account number must match the account used for payment verification. You cannot bid until your bank account number has been confirmed.
+</div>
       <label>Delivery method</label>
       <select id="regDelivery">
         <option>PostNet to PostNet</option>
@@ -455,6 +477,10 @@ th,td{
       </select>
 
       <br><br>
+      <label style="display:flex;gap:8px;align-items:center;margin:12px 0;">
+  <input id="regRulesAccepted" type="checkbox" style="width:auto;">
+  I have read and accept the Dream Clivias Auction Rules & Terms.
+</label>
       <button class="goldBtn" onclick="registerBidder()">REGISTER BIDDER</button>
       <div id="regMsg" class="small" style="margin-top:10px"></div>
     </div>
@@ -469,6 +495,7 @@ th,td{
       </select>
 
       <div id="selectedBidderNotice" class="notice">No bidder selected yet.</div>
+      <button class="goldBtn" onclick="confirmSelectedBidderBank()">CONFIRM BANK ACCOUNT</button>
 
       <h3>Auction Rules</h3>
       <p>Only registered bidders can place bids. Each valid bid must meet the minimum next bid. The highest valid bid when the auction closes wins the lot.</p>
@@ -570,14 +597,14 @@ th,td{
           </div>
         </div>
 
-        <label>Bid increase (multiples of R50 only)</label>
+    <label>Bid increase — R50 or R100 at a time</label>
         <select id="lotIncrement">
   <option value="50">R50</option>
-  <option value="100">R100</option>
-  <option value="150">R150</option>
-  <option value="200">R200</option>
-  <option value="250">R250</option>
-  <option value="500">R500</option>
+ <option value="100">R100</option>
+ 
+ 
+ 
+  
 </select>
 
         <label>Flower photo</label>
@@ -600,7 +627,44 @@ th,td{
   </div>
 </section>
 
-<section id="pageSeller" class="page hidden">
+<section id="pageRules" class="page hidden">
+  <div class="panel">
+    <h2>Dream Clivias Auction — Rules & Terms</h2>
+
+    <p><strong>By registering as a buyer or seller, you agree to these rules.</strong></p>
+
+    <h3>Buyer Rules</h3>
+    <p>1. Buyers must register with correct contact details and full delivery address.</p>
+    <p>2. A valid bank account number must be supplied and confirmed before bidding is allowed.</p>
+    <p>3. Bids may increase by R50 or R100 at a time.</p>
+    <p>4. Higher bidding limits require the applicable qualification fee before bidding above that level.</p>
+    <p>5. Qualification fees are paid once for each higher bracket reached.</p>
+    <p>6. Winning bidders must pay their invoice within the required period.</p>
+    <p>7. Unpaid invoices may result in warnings. After the 5th warning, the buyer may be banned and must register again from the beginning.</p>
+
+    <h3>Seller Rules</h3>
+    <p>8. Sellers must register with correct contact details and a valid bank account number.</p>
+    <p>9. Seller bank details must be confirmed before selling/payment functions are enabled.</p>
+   <p>10. The seller listing fee is R50 per plant / auction spot.</p>
+    <p>11. If a plant sells for more than R2,000, the seller pays Dream Clivias a commission equal to 10% of the winning bid, less the R50 listing fee already paid. No commission applies at R2,000 or below.</p>
+    <p>12. Sellers are responsible for sending sold plants to the winning buyer.</p>
+
+    <h3>Plant Photo Rules</h3>
+    <p>13. No business logos, phone numbers, WhatsApp numbers, websites, email addresses or advertising may appear on plant photos.</p>
+    <p>14. Breeding names and a small copyright mark are allowed on plant photos.</p>
+    <p>15. Flowers containing more than 20% orange colour are automatically rejected.</p>
+
+    <h3>Export Services</h3>
+    <p>16. Export service provider details are not displayed publicly.</p>
+    <p>17. A R500 export connection fee applies before export-service contact details are released.</p>
+
+    <h3>Payments & Privacy</h3>
+    <p>18. Payment information may be checked against registered bank account details and payment amounts.</p>
+    <p>19. Buyer delivery/contact details are shared only where required to complete a winning order.</p>
+    <p>20. Dream Clivias Auction may update these rules when necessary. Updated rules may require acceptance again.</p>
+  </div>
+</section>
+  <section id="pageSeller" class="page hidden">
   <div class="panel">
     <h2>Seller Registration</h2>
     <p>Register as a seller to offer your Clivias on Dream Clivias Auction.</p>
@@ -617,19 +681,23 @@ th,td{
     <label>Town</label>
     <input id="sellerTown">
 
-    <label>Bank name</label>
-    <input id="sellerBank">
+    
+   
 
-    <label>Account holder</label>
-    <input id="sellerAccountName">
+    
+   
 
     <label>Account number</label>
     <input id="sellerAccountNumber">
 
-    <label>Branch code</label>
-    <input id="sellerBranchCode">
+   
+   
 
     <br><br>
+    <label style="display:flex;gap:8px;align-items:center;margin:12px 0;">
+  <input id="sellerRulesAccepted" type="checkbox" style="width:auto;">
+  I have read and accept the Dream Clivias Auction Rules & Terms.
+</label>
     <button class="goldBtn" onclick="registerSeller()">REGISTER AS SELLER</button>
 
     <div class="notice">
@@ -708,6 +776,7 @@ function showPage(page){
     register:["pageRegister","navRegister"],
     live:["pageLive","navLive"],
     seller:["pageSeller","navSeller"],
+    rules:["pageRules","navRules"],
     admin:["pageAdmin","navAdmin"],
     invoices:["pageInvoices","navInvoices"]
   };
@@ -743,12 +812,11 @@ function registerSeller(){
     phone,
     email,
     town:document.getElementById("sellerTown").value.trim(),
-    bank:document.getElementById("sellerBank").value.trim(),
-    accountName:document.getElementById("sellerAccountName").value.trim(),
+    
+    
     accountNumber:document.getElementById("sellerAccountNumber").value.trim(),
-    branchCode:document.getElementById("sellerBranchCode").value.trim(),
-    approved:false
-  };
+bankConfirmed:false,
+approved:false
 
   state.sellers=state.sellers||[];
   state.sellers.push(seller);
@@ -760,10 +828,18 @@ function registerSeller(){
   const name=document.getElementById("regName").value.trim();
   const phone=document.getElementById("regPhone").value.trim();
 
-  if(!name || !phone){
-    document.getElementById("regMsg").textContent="Please enter full name and WhatsApp number.";
-    return;
-  }
+  const address=document.getElementById("regAddress").value.trim();
+const suburb=document.getElementById("regSuburb").value.trim();
+const postal=document.getElementById("regPostal").value.trim();
+const country=document.getElementById("regCountry").value.trim();
+const accountNumber=document.getElementById("regAccountNumber").value.trim();
+const defaultNumber=document.getElementById("regDefaultNumber").value.trim();
+const rulesAccepted=document.getElementById("regRulesAccepted").checked;
+
+if(!name || !phone || !address || !suburb || !postal || !country || !accountNumber || !defaultNumber || !rulesAccepted){
+  document.getElementById("regMsg").textContent="Please complete all required buyer details, including full address, bank account number and default number.";
+  return;
+}
 
   const bidder={
     id:"B"+Date.now(),
@@ -772,6 +848,15 @@ function registerSeller(){
     email:document.getElementById("regEmail").value.trim(),
     town:document.getElementById("regTown").value.trim(),
     province:document.getElementById("regProvince").value,
+    address:document.getElementById("regAddress").value.trim(),
+suburb:document.getElementById("regSuburb").value.trim(),
+postal:document.getElementById("regPostal").value.trim(),
+country:document.getElementById("regCountry").value.trim(),
+accountNumber:document.getElementById("regAccountNumber").value.trim(),
+defaultNumber:document.getElementById("regDefaultNumber").value.trim(),
+    bankConfirmed:false,
+    rulesAccepted:true,
+rulesAcceptedDate:new Date().toISOString(),
     delivery:document.getElementById("regDelivery").value
   };
 
@@ -806,10 +891,43 @@ function selectBidder(){
 
 function selectedBidderNotice(){
   const bidder=state.bidders.find(b=>b.id===state.selectedBidderId);
-  document.getElementById("selectedBidderNotice").textContent=
-    bidder ? "Selected bidder: "+bidder.name : "No bidder selected yet.";
-}
+  const notice=document.getElementById("selectedBidderNotice");
 
+  if(!bidder){
+    notice.textContent="No bidder selected yet.";
+    return;
+  }
+
+  notice.textContent =
+    "Selected bidder: " + bidder.name +
+    (bidder.bankConfirmed
+      ? " — ✅ BANK ACCOUNT CONFIRMED — BIDDING ENABLED"
+      : " — 🔴 BANK ACCOUNT NOT CONFIRMED — BIDDING BLOCKED");
+}
+function confirmSelectedBidderBank(){
+  const bidder=state.bidders.find(b=>b.id===state.selectedBidderId);
+
+  if(!bidder){
+    alert("Please select your bidder profile first.");
+    return;
+  }
+
+  const last4=String(bidder.accountNumber || "").slice(-4);
+
+  const ok=confirm(
+    "Please confirm that your bank account number ending in " +
+    last4 +
+    " is correct. This account will be used for payment verification."
+  );
+
+  if(!ok) return;
+
+  bidder.bankConfirmed=true;
+  save();
+  selectedBidderNotice();
+
+  alert("Bank account confirmed. You may now bid.");
+}
 function openAdmin(){
   if(document.getElementById("adminPassword").value==="1234"){
     document.getElementById("adminLogin").classList.add("hidden");
@@ -825,20 +943,19 @@ function fillSettings(){
   document.getElementById("setAuctionName").value=state.settings.auctionName;
   document.getElementById("setIncrement").value=state.settings.increment;
   document.getElementById("setDeliveryFee").value=state.settings.deliveryFee;
-  document.getElementById("setBank").value=state.settings.bank;
-  document.getElementById("setAccountName").value=state.settings.accountName;
+  
   document.getElementById("setAccountNumber").value=state.settings.accountNumber;
-  document.getElementById("setBranchCode").value=state.settings.branchCode;
+ 
 }
 
 function saveSettings(){
   state.settings.auctionName=document.getElementById("setAuctionName").value.trim() || "Dream Clivias Live Auction";
   state.settings.increment=Number(document.getElementById("setIncrement").value)||50;
   state.settings.deliveryFee=Number(document.getElementById("setDeliveryFee").value)||0;
-  state.settings.bank=document.getElementById("setBank").value.trim();
-  state.settings.accountName=document.getElementById("setAccountName").value.trim();
   state.settings.accountNumber=document.getElementById("setAccountNumber").value.trim();
-  state.settings.branchCode=document.getElementById("setBranchCode").value.trim();
+ 
+  
+  
 
   save();
   updateHeader();
@@ -963,11 +1080,16 @@ function placeBid(lotId){
   }
 
   const bidder=state.bidders.find(b=>b.id===state.selectedBidderId);
+  
   if(!bidder){
     alert("Please register or select a bidder first.");
     showPage("register");
     return;
   }
+    if(!bidder.bankConfirmed){
+  alert("Your bank account number must be confirmed before you can bid.");
+  return;
+}
 
   const lot=state.lots.find(l=>l.id===lotId);
   const amount=Number(document.getElementById("bid_"+lotId).value);
