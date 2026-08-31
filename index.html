@@ -422,7 +422,7 @@ th,td{
       <div class="formGrid">
         <div>
           <label>WhatsApp number</label>
-          <input id="regPhone" placeholder="e.g. 0821234567">
+         placeholder="e.g. +27 82 123 4567"
         </div>
         <div>
           <label>Email (optional)</label>
@@ -433,8 +433,8 @@ th,td{
           <input id="regTown">
         </div>
         <div>
-          <label>Province</label>
-          <select id="regProvince">
+          <label>State / Province / Region</label>
+<input id="regProvince" placeholder="e.g. Western Cape, California, Queensland">
             <option>Western Cape</option>
             <option>Eastern Cape</option>
             <option>Northern Cape</option>
@@ -458,10 +458,15 @@ th,td{
 <input id="regPostal">
 
 <label>Country</label>
-<input id="regCountry" placeholder="e.g. South Africa">
+<input id="regCountry" placeholder="e.g. South Africa, USA, UK, Australia">
+<div class="notice">
+  Foreign buyers may pay by international bank transfer. International payment instructions will be shown on the winning invoice.
+</div>      
 
-<label>Bank Account Number</label>
+<label>Bank Account / IBAN Number</label>
 <input id="regAccountNumber">
+ <label>SWIFT / BIC Code (international payments)</label>
+<input id="regSwift" placeholder="e.g. CABLZAJJ">     
 
 <label>Default Number</label>
 <input id="regDefaultNumber">
@@ -472,8 +477,9 @@ th,td{
       <label>Delivery method</label>
       <select id="regDelivery">
         <option>PostNet to PostNet</option>
-        <option>The Courier Guy</option>
-        <option>Collection</option>
+<option>The Courier Guy</option>
+<option>Collection</option>
+<option>International Courier</option>
       </select>
 
       <br><br>
@@ -513,6 +519,9 @@ th,td{
   <div class="panel">
     <h2 id="liveTitle">Dream Clivias Live Auction</h2>
     <div>Register or select a bidder before bidding.</div>
+    <div class="notice">
+  <b>PAYMENT NOTICE:</b> Winning bidders pay the seller/owner directly. Dream Clivias does not receive payment for the auction item. Transactions between bidder and seller/owner are at their own risk.
+</div>
     <div style="text-align:right">
       Default bid increase: R<span id="liveDefaultIncrement">50</span>
     </div>
@@ -535,6 +544,52 @@ th,td{
   <div id="adminArea" class="hidden">
     <div class="grid2">
 
+      <div class="panel">
+  <h2>Create New Auction</h2>
+
+  <label>Auction type</label>
+  <select id="newAuctionType">
+    <option value="Pots" disabled>Pots - Coming later</option>
+<option value="Seeds" disabled>Seeds - Coming later</option>
+<option value="Tools" disabled>Tools - Coming later</option>
+<option value="Mixed" disabled>Mixed - Coming later</option>
+    <option value="Clivia">Clivia</option>
+  </select>
+   <label>Auction currency</label>
+<select id="newAuctionCurrency">
+  <option value="ZAR">South African Rand (R)</option>
+  <option value="EUR">Euro (€)</option>
+</select>     
+
+  <label>Auction name</label>
+  <input id="newAuctionName" placeholder="Auction name">
+
+  <button class="goldBtn" onclick="createAuction()">CREATE AUCTION</button>
+  <div id="selectedAuctionNotice" class="notice">
+  No auction selected yet.
+</div>
+<label>Select existing auction</label>
+<select id="adminAuctionSelect" onchange="selectAdminAuction()">
+  function refreshLotCategorySelect(){
+  const select=document.getElementById("lotCategory");
+  if(!select) return;
+
+  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+
+  select.innerHTML='<option value="">Select category</option>';
+
+  if(!auction) return;
+
+  (auction.categories||[]).forEach(category=>{
+    const option=document.createElement("option");
+    option.value=category;
+    option.textContent=category;
+    select.appendChild(option);
+  });
+}
+  <option value="">Select auction</option>
+</select>        
+</div>
       <div class="panel">
         <h2>Auction Settings</h2>
 
@@ -598,6 +653,10 @@ th,td{
           </div>
 
           <div>
+<label>Category</label>
+<select id="lotCategory">
+  <option value="">Select category</option>
+</select>
             <label>Start bid (R)</label>
             <input id="lotStart" type="number">
           </div>
@@ -626,6 +685,19 @@ th,td{
     </div>
 
     <div class="panel">
+      <h2>Seller Approvals</h2>
+
+<select id="adminSellerSelect">
+  <option value="">Select seller</option>
+</select>
+
+<button class="greenBtn" onclick="approveSelectedSeller()">APPROVE SELLER</button>
+
+<div id="adminSellerMsg" class="notice">
+  Select a seller to approve.
+</div>
+
+<br>
       <h2>Current Auction Lots</h2>
       <div id="adminLots"></div>
     </div>
@@ -651,8 +723,8 @@ th,td{
     <h3>Seller Rules</h3>
     <p>8. Sellers must register with correct contact details and a valid bank account number.</p>
     <p>9. Seller bank details must be confirmed before selling/payment functions are enabled.</p>
-   <p>10. The seller listing fee is R50 per plant / auction spot.</p>
-    <p>11. If a plant sells for more than R2,000, the seller pays Dream Clivias a commission equal to 10% of the winning bid, less the R50 listing fee already paid. No commission applies at R2,000 or below.</p>
+   <p>10. Seller listing fee: South Africa – R50 per plant / auction spot. All countries outside South Africa – €5 per plant / auction spot.</p>
+    <p>11. Seller commission: For South African auctions, if a plant sells for more than R2,000, the seller pays Dream Clivias 10% of the winning bid, less the R50 listing fee already paid. For international auctions, if a plant sells for more than €100, the seller pays Dream Clivias 10% of the winning bid, less the €5 listing fee already paid. No commission is payable at or below these thresholds.</p>
     <p>12. Sellers are responsible for sending sold plants to the winning buyer.</p>
 
     <h3>Plant Photo Rules</h3>
@@ -667,7 +739,13 @@ th,td{
     <h3>Payments & Privacy</h3>
     <p>18. Payment information may be checked against registered bank account details and payment amounts.</p>
     <p>19. Buyer delivery/contact details are shared only where required to complete a winning order.</p>
-    <p>20. Dream Clivias Auction may update these rules when necessary. Updated rules may require acceptance again.</p>
+    <p>20. Payment for a winning item is made directly by the buyer to the seller. Dream Clivias Auction is not the recipient of the purchase payment.</p>
+    <p>21. Any transaction, payment, delivery or other arrangement between a buyer and seller is undertaken at their own risk. Dream Clivias Auction provides the auction platform but is not a party to the sale between the buyer and seller.</p>
+<p>22. All Dream Clivias Auction platform fees, listing fees, commission payments and export connection fees are non-refundable once paid.</p>
+<p>22. All sales and transactions between a bidder and seller/owner are undertaken at their own risk. Dream Clivias is not a party to the sale between them.</p>
+<p>23. Dream Clivias Auction may update these rules when necessary. Updated rules may require acceptance again.</p>
+
+<p>24. The bidder and seller/owner are responsible for completing the transaction, payment and delivery arrangements between themselves.</p>
   </div>
 </section>
   <section id="pageSeller" class="page hidden">
@@ -686,16 +764,23 @@ th,td{
 
     <label>Town</label>
     <input id="sellerTown">
-
+<label>Country</label>
+<input id="sellerCountry" placeholder="e.g. South Africa, USA, UK, Australia">
     
    
 
     
    
-
+<label>Bank Name</label>
+<input id="sellerBankName" placeholder="e.g. Capitec Bank">
+<label>Account Holder Name</label>
+<input id="sellerAccountHolder" placeholder="Name exactly as registered with the bank">    
     <label>Account number</label>
-    <input id="sellerAccountNumber">
-
+   <label>Bank Account / IBAN Number</label>
+    <label>Branch / Routing Code</label>
+<input id="sellerBankCode" placeholder="Branch code, routing number, sort code or BSB">
+<label>SWIFT / BIC Code (international payments)</label>
+<input id="sellerSwift" placeholder="e.g. CABLZAJJ">
    
    
 
@@ -766,9 +851,12 @@ let state = {
     branchCode:"",
     open:true
   },
+  auctions:[],
+  selectedAuctionId:"",
   bidders:[],sellers:[],
   
   selectedBidderId:"",
+  auctionTypes:["Clivia","Pots","Seeds","Tools","Mixed"],
   lots:[],
   invoices:[]
 };
@@ -820,8 +908,9 @@ function registerSeller(){
   const name=document.getElementById("sellerName").value.trim();
   const phone=document.getElementById("sellerPhone").value.trim();
   const email=document.getElementById("sellerEmail").value.trim();
+  const country=document.getElementById("sellerCountry").value.trim();
 const rulesAccepted=document.getElementById("sellerRulesAccepted").checked;
-  if(!name || !phone || !email || !rulesAccepted){
+  if(!name || !phone || !email || !country || !rulesAccepted){
     alert("Please enter your name, WhatsApp number and email.");
     return;
   }
@@ -832,9 +921,12 @@ const rulesAccepted=document.getElementById("sellerRulesAccepted").checked;
     phone,
     email,
     town:document.getElementById("sellerTown").value.trim(),
-    
-    
+    country:document.getElementById("sellerCountry").value.trim(),
+    bankName:document.getElementById("sellerBankName").value.trim(),
+    accountHolder:document.getElementById("sellerAccountHolder").value.trim(),
     accountNumber:document.getElementById("sellerAccountNumber").value.trim(),
+    bankCode:document.getElementById("sellerBankCode").value.trim(),
+    swift:document.getElementById("sellerSwift").value.trim(),
 bankConfirmed:false,
     bankChangePending:false,
     bankChangePending:false,
@@ -848,6 +940,7 @@ approved:false
   state.sellers.push(seller);
 save();
 refreshSellerSelect();
+  refreshAdminSellerSelect();
   alert("Seller registration submitted. Dream Clivias must approve you before you can list plants.");
   }
   function refreshSellerSelect(){
@@ -856,16 +949,50 @@ refreshSellerSelect();
 
   select.innerHTML='<option value="">Select seller</option>';
 
-  (state.sellers||[]).forEach(seller=>{
+  (state.sellers||[]).filter(seller=>seller.approved).forEach(seller=>{
     const option=document.createElement("option");
     option.value=seller.id;
     option.textContent=seller.name;
     select.appendChild(option);
   });
 }
+  function refreshAdminSellerSelect(){
+    function approveSelectedSeller(){
+  const sellerId=document.getElementById("adminSellerSelect").value;
+  const seller=(state.sellers||[]).find(s=>s.id===sellerId);
+
+  if(!seller){
+    document.getElementById("adminSellerMsg").textContent="Please select a seller first.";
+    return;
+  }
+
+  seller.approved=true;
+  save();
+  refreshSellerSelect();
+  refreshAdminSellerSelect();
+
+  document.getElementById("adminSellerMsg").textContent=
+    seller.name + " approved.";
+}
+  const select=document.getElementById("adminSellerSelect");
+  if(!select) return;
+
+  select.innerHTML='<option value="">Select seller</option>';
+
+  (state.sellers||[]).forEach(seller=>{
+    const option=document.createElement("option");
+    option.value=seller.id;
+    option.textContent=seller.name + (seller.approved ? " - APPROVED" : " - WAITING");
+    select.appendChild(option);
+  });
+}
   function selectSeller(){
   const sellerId=document.getElementById("sellerSelect").value;
   const seller=(state.sellers||[]).find(s=>s.id===sellerId);
+   if(!seller || !seller.approved){
+  document.getElementById("lotMsg").textContent="Please select an approved seller first.";
+  return;
+} 
   const notice=document.getElementById("selectedSellerNotice");
 
   if(!seller){
@@ -927,6 +1054,7 @@ suburb:document.getElementById("regSuburb").value.trim(),
 postal:document.getElementById("regPostal").value.trim(),
 country:document.getElementById("regCountry").value.trim(),
 accountNumber:document.getElementById("regAccountNumber").value.trim(),
+swift:document.getElementById("regSwift").value.trim(),    
 defaultNumber:document.getElementById("regDefaultNumber").value.trim(),
     bankConfirmed:false,
     rulesAccepted:true,
@@ -1009,11 +1137,175 @@ function openAdmin(){
     document.getElementById("adminArea").classList.remove("hidden");
     fillSettings();
     renderAdminLots();
+    refreshAdminAuctionSelect();
+    refreshAdminSellerSelect();
   }else{
     document.getElementById("adminLoginMsg").textContent="Incorrect password.";
   }
 }
+ function selectAdminAuction(){
+  const auctionId=document.getElementById("adminAuctionSelect").value;
+  const auction=(state.auctions||[]).find(a=>a.id===auctionId)
 
+  if(!auction){
+    state.selectedAuctionId="";
+    save();
+    document.getElementById("selectedAuctionNotice").textContent="No auction selected yet.";
+    return;
+  }
+
+  state.selectedAuctionId=auction.id;
+  refreshLotCategorySelect(); 
+  save();refreshAdminAuctionSelect();
+
+  document.getElementById("selectedAuctionNotice").textContent=
+  "Selected auction: " + auction.name + " (" + auction.type + ") - " + auction.status + " - " + auction.currency;
+   if(auction.auctionDate && auction.auctionTime){
+  document.getElementById("selectedAuctionNotice").textContent +=
+    " | Auction: " + auction.auctionDate + " at " + auction.auctionTime;
+}   
+  function refreshAdminAuctionSelect(){
+  const select=document.getElementById("adminAuctionSelect");
+  if(!select) return;
+
+  select.innerHTML='<option value="">Select auction</option>';
+
+  (state.auctions||[]).forEach(auction=>{
+    const option=document.createElement("option");
+    option.value=auction.id;
+    option.textContent=auction.name + " (" + auction.type + ")";
+    select.appendChild(option);
+  });
+
+  select.value=state.selectedAuctionId||"";
+}
+
+function createAuction(){
+  const type=document.getElementById("newAuctionType").value;
+  if(type!=="Clivia"){
+  alert("This auction type is coming later. Only Clivia auctions are active now.");
+  return;
+}
+  const currency=document.getElementById("newAuctionCurrency").value;
+  const name=document.getElementById("newAuctionName").value.trim();
+  if(!name){
+    alert("Please enter an auction name.");
+    return;
+  }
+
+  const auction={
+    id:"A"+Date.now(),
+    type:type,
+    currency:currency,
+    name:name,
+    status:"FILLING",
+    createdDate:new Date().toISOString(),
+    lots:[],
+categories:
+  type==="Clivia" ? ["Seedlings","Offsets","Sets","Mature Plants"] :
+  type==="Pots" ? ["Small Pots","Medium Pots","Large Pots","Decorative Pots","Hanging Pots","Sets"] :
+  type==="Seeds" ? ["Clivia Seeds","Seed Packs","Mixed Seeds","Rare Seeds"] :
+  type==="Tools" ? ["Garden Tools","Plant Tools","Growing Equipment","Other Tools"] :
+  type==="Mixed" ? ["Clivia Plants","Seedlings","Offsets","Seeds","Pots","Tools","Other"] :
+  [],
+categoryCapacity:12,
+  };
+
+  state.auctions=state.auctions||[];
+  state.auctions.push(auction);
+  state.selectedAuctionId=auction.id;
+  save();
+  refreshAdminAuctionSelect();
+  
+  document.getElementById("selectedAuctionNotice").textContent=
+  "Selected auction: " + name + " (" + type + ")";
+
+  alert("Auction created: " + name);
+}
+  
+  function isCategoryFull(auction,category){
+  const count=(auction.lots||[]).filter(lot=>lot.category===category).length;
+  return count >= (auction.categoryCapacity||12);
+}
+function isAuctionFull(auction){
+  if(!auction || !auction.categories || auction.categories.length===0) return false;
+
+  return auction.categories.every(category=>
+    isCategoryFull(auction,category)
+  );
+}  
+  function updateAuctionFullStatus(auction){
+  if(isAuctionFull(auction)){
+    auction.status="FULL";
+    if(!auction.fullDate){
+      auction.fullDate=new Date().toISOString();
+    }
+    save();
+  }
+}
+function isAuctionHalfFull(auction){
+  if(!auction || !auction.categories || auction.categories.length===0) return false;
+
+  const totalCapacity=auction.categories.length * (auction.categoryCapacity||12);
+  const currentLots=(auction.lots||[]).length;
+
+  return currentLots >= Math.ceil(totalCapacity / 2);
+}  
+  function getNextAuctionSlot(){
+  const slots=["16:00","17:30","19:00"];
+  const existing=(state.auctions||[]).filter(a=>a.auctionDate && a.auctionTime);
+
+  let date=new Date();
+
+  for(let i=0;i<30;i++){
+    const day=date.getDay();
+
+    if(day===5 || day===6){
+      const dateKey=
+  date.getFullYear()+"-"+
+  String(date.getMonth()+1).padStart(2,"0")+"-"+
+  String(date.getDate()).padStart(2,"0");
+      
+      for(const time of slots){
+        const [hour,minute]=time.split(":").map(Number);
+const slotDate=new Date(date);
+slotDate.setHours(hour,minute,0,0);
+if(slotDate<=new Date()) continue;
+        const used=existing.some(a=>
+          a.auctionDate===dateKey &&
+          a.auctionTime===time
+        );
+
+        if(!used){
+          return {date:dateKey,time:time};
+        }
+      }
+    }
+
+    date.setDate(date.getDate()+1);
+  }
+
+  return null;
+}
+  function updateAuctionHalfFullStatus(auction){
+  if(isAuctionHalfFull(auction) && !auction.halfFullDate){
+    auction.halfFullDate=new Date().toISOString();
+    auction.status="SCHEDULING";
+    save();
+  }
+}
+function scheduleAuctionAtHalfFull(auction){
+  if(!isAuctionHalfFull(auction)) return;
+  if(auction.auctionDate && auction.auctionTime) return;
+
+  const slot=getNextAuctionSlot();
+  if(!slot) return;
+
+  auction.auctionDate=slot.date;
+  auction.auctionTime=slot.time;
+  auction.status="SCHEDULED";
+  save();
+}  
 function fillSettings(){
   document.getElementById("setAuctionName").value=state.settings.auctionName;
   document.getElementById("setIncrement").value=state.settings.increment;
@@ -1049,31 +1341,61 @@ function fileToDataURL(file){
 
 async function addLot(){
   const name=document.getElementById("lotName").value.trim();
+  const category=document.getElementById("lotCategory").value;
   const start=Number(document.getElementById("lotStart").value);
   const flowerFile=document.getElementById("lotFlower").files[0];
   const plantFile=document.getElementById("lotPlant").files[0];
+  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+  const sellerId=document.getElementById("sellerSelect").value;
+const seller=(state.sellers||[]).find(s=>s.id===sellerId);
+  if(!seller || !seller.approved){
+  document.getElementById("lotMsg").textContent="Please select an approved seller first.";
+  return;
+}
+ const listingFee=seller.country.toLowerCase()==="south africa" ? 50 : 5;
+const listingCurrency=seller.country.toLowerCase()==="south africa" ? "ZAR" : "EUR"; 
+if(!auction){
+  document.getElementById("lotMsg").textContent="Please select an auction first.";
+  return;
+}
 
-  if(!name || !start || !flowerFile){
-    document.getElementById("lotMsg").textContent="Please enter name, start bid and flower photo.";
+ if(!name || !category || !start || !flowerFile){
+    document.getElementById("lotMsg").textContent="Please enter name, category, start bid and flower photo.";
     return;
   }
-
+ if(isCategoryFull(auction,category)){
+  document.getElementById("lotMsg").textContent="This category is full. Please choose another category.";
+  return;
+}
   const flower=await fileToDataURL(flowerFile);
-  const plant=await fileToDataURL(plantFile);
+  const plant=plantFile ? await fileToDataURL(plantFile) : "";
 
   state.lots.push({
     id:"L"+Date.now(),
-    lotNumber:state.lots.length+1,
+    auctionId:state.selectedAuctionId,
+    sellerId:sellerId,
+    listingFee:listingFee,
+listingCurrency:listingCurrency,
+    lotNumber:(auction.lots||[]).length+1,
     name,
+    category:document.getElementById("lotCategory").value,
     leaves:Number(document.getElementById("lotLeaves").value)||0,
     offsets:Number(document.getElementById("lotOffsets").value)||0,
     startBid:start,
     increment:Number(document.getElementById("lotIncrement").value)||state.settings.increment,
     flower,
     plant,
-    bids:[]
+    bids:[],
+approved:false
   });
+  
+const newLot=state.lots[state.lots.length-1];
+auction.lots=auction.lots||[];
+auction.lots.push(newLot);
 
+updateAuctionHalfFullStatus(auction);
+scheduleAuctionAtHalfFull(auction);
+  updateAuctionFullStatus(auction);
   save();
 
   ["lotName","lotLeaves","lotOffsets","lotStart","lotIncrement"].forEach(id=>{
@@ -1082,7 +1404,9 @@ async function addLot(){
 
   document.getElementById("lotFlower").value="";
   document.getElementById("lotPlant").value="";
-  document.getElementById("lotMsg").textContent="Lot added.";
+  document.getElementById("lotMsg").textContent=
+  "Lot added. Listing fee: " +
+  (listingCurrency==="ZAR" ? "R"+listingFee : "€"+listingFee);
 
   renderAdminLots();
 }
@@ -1093,19 +1417,32 @@ function currentBid(lot){
 }
 
 function nextBid(lot){
+  const auction=(state.auctions||[]).find(a=>a.id===lot.auctionId);
+  const increment=auction && auction.currency==="EUR"
+    ? 5
+    : Number(lot.increment||state.settings.increment);
+
   if(!lot.bids || lot.bids.length===0) return lot.startBid;
-  return currentBid(lot)+Number(lot.increment||state.settings.increment);
+  return currentBid(lot)+increment;
+}
 }
 
 function renderLots(){
   const box=document.getElementById("lotsGrid");
-
-  if(state.lots.length===0){
+  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
+const auctionLots=state.lots.filter(lot=>
+  lot.auctionId===state.selectedAuctionId &&
+  lot.approved===true
+);
+ if(auctionLots.length===0){
     box.innerHTML='<div class="panel">No auction lots have been added yet.</div>';
     return;
   }
 
-  box.innerHTML=state.lots.map((lot,i)=>{
+  
+
+box.innerHTML=auctionLots.map((lot,i)=>{
     const high=currentBid(lot);
     const next=nextBid(lot);
     const highest=(lot.bids||[]).slice().sort((a,b)=>b.amount-a.amount)[0];
@@ -1114,7 +1451,7 @@ function renderLots(){
     <div class="lotCard">
       <div class="lotTop">
         <span>LOT-${String(i+1).padStart(3,"0")}</span>
-        <span>Min +R${lot.increment}</span>
+        <span>Min +${currencySymbol}${lot.increment}</span>
       </div>
 
       <div class="flowerWrap">
@@ -1123,7 +1460,7 @@ function renderLots(){
 
       <div class="lotBody">
         <div class="lotName">${escapeHtml(lot.name)}</div>
-        <div class="price">R${high} + PPC</div>
+        <div class="price">${currencySymbol}${high} + PPC</div>
 
         <div class="meta">
           Leaves: ${lot.leaves} &nbsp;•&nbsp; Offsets: ${lot.offsets}
@@ -1149,10 +1486,13 @@ function renderLots(){
 }
 
 function placeBid(lotId){
+  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
   if(!state.settings.open){
     alert("The auction is closed.");
     return;
   }
+  const bidder=state.bidders.find(b=>b.id===state.selectedBidderId);
   const unpaidInvoice=(state.invoices||[]).find(inv=>
   inv.bidderId===bidder.id &&
   inv.status!=="PAID"
@@ -1178,13 +1518,15 @@ if(unpaidInvoice){
   const lot=state.lots.find(l=>l.id===lotId);
   const amount=Number(document.getElementById("bid_"+lotId).value);
  const required=nextBid(lot);
-  if(!Number.isFinite(amount) || amount % 50 !== 0){
+  const bidStep=auction && auction.currency==="EUR" ? 5 : 50;
+
+if(!Number.isFinite(amount) || amount % bidStep !== 0){
   alert("Bids must be in multiples of R50.");
   return;
 }
 
   if(amount<required){
-    alert("Minimum valid bid is R"+required);
+    alert("Minimum valid bid is "+currencySymbol+required);
     return;
   }
 
@@ -1249,6 +1591,7 @@ status:"UNPAID"
 
     winners[winningBid.bidderId].lots.push({
       lot:lot.name,
+      sellerId:lot.sellerId,
       amount:winningBid.amount
     });
 
@@ -1269,8 +1612,26 @@ function renderInvoices(){
   box.innerHTML=state.invoices.map(inv=>`
     <div class="panel">
       <h3>${escapeHtml(inv.bidderName)}</h3>
-      ${inv.lots.map(x=>`<div>${escapeHtml(x.lot)} — R${x.amount}</div>`).join("")}
-      <hr>
+    ${inv.lots.map(x=>{
+  const seller=(state.sellers||[]).find(s=>s.id===x.sellerId);
+
+  return `
+    <div>
+      ${escapeHtml(x.lot)} - R${x.amount}
+      ${seller ? `
+        <div class="notice">
+          Seller: ${escapeHtml(seller.name)}<br>
+          Bank: ${escapeHtml(seller.bankName||"")}<br>
+          Account holder: ${escapeHtml(seller.accountHolder||"")}<br>
+          Account / IBAN: ${escapeHtml(seller.accountNumber||"")}<br>
+          Branch / Routing Code: ${escapeHtml(seller.bankCode||"")}<br>
+          SWIFT / BIC: ${escapeHtml(seller.swift||"")}<br>
+          Country: ${escapeHtml(seller.country||"")}
+        </div>
+      ` : ""}
+    </div>
+  `;
+}).join("")}
       <b>Total: R${inv.total + Number(state.settings.deliveryFee||0)}</b>
     </div>
   `).join("");
@@ -1278,9 +1639,11 @@ function renderInvoices(){
 
 function renderAdminLots(){
   const box=document.getElementById("adminLots");
+  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
   if(!box) return;
 
-  if(state.lots.length===0){
+  if(state.lots.filter(lot=>lot.auctionId===state.selectedAuctionId).length===0){
     box.innerHTML="No lots yet.";
     return;
   }
@@ -1292,22 +1655,44 @@ function renderAdminLots(){
         <th>Name</th>
         <th>Start</th>
         <th>Current</th>
-        <th></th>
+        <th>Status</th>
+<th>Action</th>
       </tr>
 
-      ${state.lots.map((lot,i)=>`
+      ${state.lots
+  .filter(lot=>lot.auctionId===state.selectedAuctionId)
+  .map((lot,i)=>`
         <tr>
           <td>${i+1}</td>
           <td>${escapeHtml(lot.name)}</td>
-          <td>R${lot.startBid}</td>
-          <td>R${currentBid(lot)}</td>
-          <td><button class="redBtn" onclick="deleteLot('${lot.id}')">Delete</button></td>
+         <td>${currencySymbol}${lot.startBid}</td>
+<td>${currencySymbol}${currentBid(lot)}</td>
+<td>${lot.approved ? "APPROVED" : "WAITING"}</td>
+          <td>
+  <button class="greenBtn" onclick="approveLot('${lot.id}')">Approve</button>
+  <button class="redBtn" onclick="deleteLot('${lot.id}')">Delete</button>
+</td>
         </tr>
       `).join("")}
     </table>
   `;
 }
+function approveLot(id){
+  const lot=state.lots.find(l=>l.id===id);
+  if(!lot) return;
 
+  lot.approved=true;
+
+  const auction=(state.auctions||[]).find(a=>a.id===lot.auctionId);
+  if(auction && auction.lots){
+    const auctionLot=auction.lots.find(l=>l.id===id);
+    if(auctionLot) auctionLot.approved=true;
+  }
+
+  save();
+  renderAdminLots();
+  renderLots();
+}
 function deleteLot(id){
   if(!confirm("Delete this auction lot?")) return;
   state.lots=state.lots.filter(l=>l.id!==id);
