@@ -422,7 +422,7 @@ th,td{
       <div class="formGrid">
         <div>
           <label>WhatsApp number</label>
-         placeholder="e.g. +27 82 123 4567"
+        <input id="regPhone" placeholder="e.g. +27 82 123 4567">
         </div>
         <div>
           <label>Email (optional)</label>
@@ -570,23 +570,6 @@ th,td{
 </div>
 <label>Select existing auction</label>
 <select id="adminAuctionSelect" onchange="selectAdminAuction()">
-  function refreshLotCategorySelect(){
-  const select=document.getElementById("lotCategory");
-  if(!select) return;
-
-  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
-
-  select.innerHTML='<option value="">Select category</option>';
-
-  if(!auction) return;
-
-  (auction.categories||[]).forEach(category=>{
-    const option=document.createElement("option");
-    option.value=category;
-    option.textContent=category;
-    select.appendChild(option);
-  });
-}
   <option value="">Select auction</option>
 </select>        
 </div>
@@ -777,6 +760,7 @@ th,td{
 <input id="sellerAccountHolder" placeholder="Name exactly as registered with the bank">    
     <label>Account number</label>
    <label>Bank Account / IBAN Number</label>
+    <input id="sellerAccountNumber">
     <label>Branch / Routing Code</label>
 <input id="sellerBankCode" placeholder="Branch code, routing number, sort code or BSB">
 <label>SWIFT / BIC Code (international payments)</label>
@@ -928,7 +912,6 @@ const rulesAccepted=document.getElementById("sellerRulesAccepted").checked;
     bankCode:document.getElementById("sellerBankCode").value.trim(),
     swift:document.getElementById("sellerSwift").value.trim(),
 bankConfirmed:false,
-    bankChangePending:false,
     bankChangePending:false,
     rulesAccepted:true,
 rulesAcceptedDate:new Date().toISOString(),
@@ -1180,7 +1163,23 @@ function openAdmin(){
 
   select.value=state.selectedAuctionId||"";
 }
+function refreshLotCategorySelect(){
+  const select=document.getElementById("lotCategory");
+  if(!select) return;
 
+  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+
+  select.innerHTML='<option value="">Select category</option>';
+
+  if(!auction) return;
+
+  (auction.categories||[]).forEach(category=>{
+    const option=document.createElement("option");
+    option.value=category;
+    option.textContent=category;
+    select.appendChild(option);
+  });
+}
 function createAuction(){
   const type=document.getElementById("newAuctionType").value;
   if(type!=="Clivia"){
@@ -1493,6 +1492,11 @@ const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
     return;
   }
   const bidder=state.bidders.find(b=>b.id===state.selectedBidderId);
+  if(!bidder){
+  alert("Please register or select a bidder first.");
+  showPage("register");
+  return;
+}
   const unpaidInvoice=(state.invoices||[]).find(inv=>
   inv.bidderId===bidder.id &&
   inv.status!=="PAID"
@@ -1520,7 +1524,7 @@ if(unpaidInvoice){
   const bidStep=auction && auction.currency==="EUR" ? 5 : 50;
 
 if(!Number.isFinite(amount) || amount % bidStep !== 0){
-  alert("Bids must be in multiples of R50.");
+  alert("Bids must be in multiples of "+currencySymbol+bidStep+".");
   return;
 }
 
