@@ -481,6 +481,12 @@ th,td{
   <input id="regRulesAccepted" type="checkbox" style="width:auto;">
   I have read and accept the Dream Clivias Auction Rules & Terms.
 </label>
+      
+      <label>Notify me about the next auction?</label>
+<select id="regNotifyNextAuction">
+  <option value="yes">Yes</option>
+  <option value="no">No</option>
+</select>
       <button class="goldBtn" onclick="registerBidder()">REGISTER BIDDER</button>
       <div id="regMsg" class="small" style="margin-top:10px"></div>
     </div>
@@ -698,8 +704,22 @@ th,td{
   <input id="sellerRulesAccepted" type="checkbox" style="width:auto;">
   I have read and accept the Dream Clivias Auction Rules & Terms.
 </label>
-    <button class="goldBtn" onclick="registerSeller()">REGISTER AS SELLER</button>
+    <label>Notify me about the next auction?</label>
+<select id="sellerNotifyNextAuction">
+  <option value="yes">Yes</option>
+  <option value="no">No</option>
+</select>
 
+<button class="goldBtn" onclick="registerSeller()">REGISTER AS SELLER</button>
+    <label>Already registered seller?</label>
+<select id="sellerSelect" onchange="selectSeller()"></select>
+
+<div id="selectedSellerNotice" class="notice">
+  No seller selected yet.
+</div>
+    
+    <button class="goldBtn" onclick="confirmSellerBank()">CONFIRM BANK ACCOUNT</button>
+    
     <div class="notice">
       Seller accounts must be approved by Dream Clivias before plants can be listed for auction.
     </div>
@@ -800,8 +820,8 @@ function registerSeller(){
   const name=document.getElementById("sellerName").value.trim();
   const phone=document.getElementById("sellerPhone").value.trim();
   const email=document.getElementById("sellerEmail").value.trim();
-
-  if(!name || !phone || !email){
+const rulesAccepted=document.getElementById("sellerRulesAccepted").checked;
+  if(!name || !phone || !email || !rulesAccepted){
     alert("Please enter your name, WhatsApp number and email.");
     return;
   }
@@ -816,13 +836,67 @@ function registerSeller(){
     
     accountNumber:document.getElementById("sellerAccountNumber").value.trim(),
 bankConfirmed:false,
+    bankChangePending:false,
+    bankChangePending:false,
+    rulesAccepted:true,
+rulesAcceptedDate:new Date().toISOString(),
+notifyNextAuction:document.getElementById("sellerNotifyNextAuction").value,
 approved:false
+  };
 
   state.sellers=state.sellers||[];
   state.sellers.push(seller);
+save();
+refreshSellerSelect();
+  alert("Seller registration submitted. Dream Clivias must approve you before you can list plants.");
+  }
+  function refreshSellerSelect(){
+  const select=document.getElementById("sellerSelect");
+  if(!select) return;
+
+  select.innerHTML='<option value="">Select seller</option>';
+
+  (state.sellers||[]).forEach(seller=>{
+    const option=document.createElement("option");
+    option.value=seller.id;
+    option.textContent=seller.name;
+    select.appendChild(option);
+  });
+}
+  function selectSeller(){
+  const sellerId=document.getElementById("sellerSelect").value;
+  const seller=(state.sellers||[]).find(s=>s.id===sellerId);
+  const notice=document.getElementById("selectedSellerNotice");
+
+  if(!seller){
+    notice.textContent="No seller selected yet.";
+    return;
+  }
+
+  notice.textContent="Selected seller: " + seller.name;
+}
+  function confirmSellerBank(){
+  const sellerId=document.getElementById("sellerSelect").value;
+  const seller=(state.sellers||[]).find(s=>s.id===sellerId);
+
+  if(!seller){
+    alert("Please select your seller profile first.");
+    return;
+  }
+
+  const last4=String(seller.accountNumber||"").slice(-4);
+
+  const ok=confirm(
+    "Please confirm your seller bank account ending in " + last4 + " is correct."
+  );
+
+  if(!ok) return;
+
+  seller.bankConfirmed=true;
+  seller.bankConfirmedDate=new Date().toISOString();
   save();
 
-  alert("Seller registration submitted. Dream Clivias must approve you before you can list plants.");
+  alert("Seller bank account confirmed.");
 }
   function registerBidder(){
   const name=document.getElementById("regName").value.trim();
@@ -857,9 +931,9 @@ defaultNumber:document.getElementById("regDefaultNumber").value.trim(),
     bankConfirmed:false,
     rulesAccepted:true,
 rulesAcceptedDate:new Date().toISOString(),
+    notifyNextAuction:document.getElementById("regNotifyNextAuction").value,
     delivery:document.getElementById("regDelivery").value
   };
-
   state.bidders.push(bidder);
   state.selectedBidderId=bidder.id;
   save();
@@ -923,6 +997,7 @@ function confirmSelectedBidderBank(){
   if(!ok) return;
 
   bidder.bankConfirmed=true;
+  bidder.bankConfirmedDate=new Date().toISOString();
   save();
   selectedBidderNotice();
 
@@ -1078,6 +1153,15 @@ function placeBid(lotId){
     alert("The auction is closed.");
     return;
   }
+  const unpaidInvoice=(state.invoices||[]).find(inv=>
+  inv.bidderId===bidder.id &&
+  inv.status!=="PAID"
+);
+
+if(unpaidInvoice){
+  alert("You have an unpaid invoice. Please pay it before you can bid again.");
+  return;
+}
 
   const bidder=state.bidders.find(b=>b.id===state.selectedBidderId);
   
@@ -1158,7 +1242,8 @@ function createInvoices(){
         bidderId:winningBid.bidderId,
         bidderName:winningBid.bidderName,
         lots:[],
-        total:0
+     total:0,
+status:"UNPAID"
       };
     }
 
