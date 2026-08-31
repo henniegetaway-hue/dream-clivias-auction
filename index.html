@@ -1451,7 +1451,7 @@ box.innerHTML=auctionLots.map((lot,i)=>{
     <div class="lotCard">
       <div class="lotTop">
         <span>LOT-${String(i+1).padStart(3,"0")}</span>
-        <span>Min +${currencySymbol}${lot.increment}</span>
+        <span>Min +${currencySymbol}${auction && auction.currency==="EUR" ? 5 : 50}</span>
       </div>
 
       <div class="flowerWrap">
