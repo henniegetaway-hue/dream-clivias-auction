@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">F
 <title>Dream Clivias Auction</title>
 
 <style>
@@ -589,11 +589,11 @@ th,td{
 
         <div class="formGrid">
           <div>
-            <label>Default minimum bid increase (R)</label>
+            <label>Default minimum bid increase</label>
             <input id="setIncrement" type="number">
           </div>
           <div>
-            <label>Default delivery charge (R)</label>
+            <label>Default delivery charge</label>
             <input id="setDeliveryFee" type="number">
           </div>
 
@@ -628,7 +628,8 @@ th,td{
 
       <div class="panel">
         <h2>Add Auction Lot</h2>
-
+<label>Select seller</label>
+<select id="adminSellerSelect"></select>
         <label>Name / Cross</label>
         <input id="lotName" placeholder="e.g. Green Throat × White Stripe">
 
@@ -704,7 +705,7 @@ th,td{
     <p>9. The seller's registered bank account number must be confirmed before selling and payment-related functions are enabled. Changes to a confirmed bank account number require Dream Clivias Admin approval.</p>
    <p>10. Seller listing fee: R50 per plant in ZAR auctions and €5 per plant in EUR auctions.</p>
     <p>11. Seller commission: For ZAR auctions, if a plant sells for more than R2,000, the seller pays Dream Clivias 10% of the winning bid less the R50 listing fee. No commission is charged on sales of R2,000 or less. For EUR auctions, the commission threshold and rate will be determined separately.</p>
-    <p>12. Sellers are encouraged to promote their listed plants using the Facebook, WhatsApp and other sharing options provided by Dream Clivias Auction to increase exposure to potential bidders.</p>
+    <p>12. The seller is responsible for sending the sold plant directly to the winning buyer and for arranging delivery with the buyer. Sellers are encouraged to promote their listed plants using the Facebook, WhatsApp and other sharing options provided by Dream Clivias Auction.</p>
     
     <h3>Plant Photo Rules</h3>
     <p>13. No business logos, phone numbers, WhatsApp numbers, websites, email addresses or advertising may appear on plant photos.</p>
@@ -910,16 +911,19 @@ refreshSellerSelect();
   }
   function refreshSellerSelect(){
   const select=document.getElementById("sellerSelect");
-  if(!select) return;
+   const adminSelect=document.getElementById("adminSellerSelect"); 
+  if(!select || !adminSelect) return;
 
   select.innerHTML='<option value="">Select seller</option>';
-
+adminSelect.innerHTML='<option value="">Select seller</option>';
   (state.sellers||[]).forEach(seller=>{
     const option=document.createElement("option");
     option.value=seller.id;
     option.textContent=seller.name;
     select.appendChild(option);
+    adminSelect.appendChild(option.cloneNode(true));
   });
+    adminSelect.value="";
 }
    function selectSeller(){
   const sellerId=document.getElementById("sellerSelect").value;
@@ -1091,6 +1095,7 @@ function openAdmin(){
     fillSettings();
     renderAdminLots();
     refreshLotCategorySelect();
+    refreshSellerSelect();
   }else{
     document.getElementById("adminLoginMsg").textContent="Incorrect password.";
   }
@@ -1323,7 +1328,7 @@ async function addLot(){
   const flowerFile=document.getElementById("lotFlower").files[0];
   const plantFile=document.getElementById("lotPlant").files[0];
   const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
-  const sellerId=document.getElementById("sellerSelect").value;
+  const sellerId=document.getElementById("adminSellerSelect").value;
   const listingCurrency=auction && auction.currency==="EUR" ? "EUR" : "ZAR";
 const listingFee=listingCurrency==="EUR" ? 5 : 50;
 const seller=(state.sellers||[]).find(s=>s.id===sellerId);
