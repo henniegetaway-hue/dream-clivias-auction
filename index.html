@@ -435,16 +435,6 @@ th,td{
         <div>
           <label>State / Province / Region</label>
 <input id="regProvince" placeholder="e.g. Western Cape, California, Queensland">
-            <option>Western Cape</option>
-            <option>Eastern Cape</option>
-            <option>Northern Cape</option>
-            <option>Gauteng</option>
-            <option>KwaZulu-Natal</option>
-            <option>Free State</option>
-            <option>Limpopo</option>
-            <option>Mpumalanga</option>
-            <option>North West</option>
-          </select>
         </div>
       </div>
 
@@ -460,13 +450,11 @@ th,td{
 <label>Country</label>
 <input id="regCountry" placeholder="e.g. South Africa, USA, UK, Australia">
 <div class="notice">
-  Foreign buyers may pay by international bank transfer. International payment instructions will be shown on the winning invoice.
+  Foreign buyers may pay by international bank transfer. After the auction, the seller will send the winning bidder the final payment instructions directly through Dream Clivias or WhatsApp.
 </div>      
 
 <label>Bank Account / IBAN Number</label>
-<input id="regAccountNumber">
- <label>SWIFT / BIC Code (international payments)</label>
-<input id="regSwift" placeholder="e.g. CABLZAJJ">     
+<input id="regAccountNumber">    
 
 <label>Default Number</label>
 <input id="regDefaultNumber">
@@ -507,7 +495,9 @@ th,td{
       </select>
 
       <div id="selectedBidderNotice" class="notice">No bidder selected yet.</div>
-      <button class="goldBtn" onclick="confirmSelectedBidderBank()">CONFIRM BANK ACCOUNT</button>
+      <button class="goldBtn" onclick="confirmSellerBank()">CONFIRM BANK ACCOUNT</button>
+</div>
+</section>
 
       <h3>Auction Rules</h3>
       <p>Only registered bidders can place bids. Each valid bid must meet the minimum next bid. The highest valid bid when the auction closes wins the lot.</p>
@@ -667,22 +657,11 @@ th,td{
       </div>
     </div>
 
-    <div class="panel">
-      <h2>Seller Approvals</h2>
-
-<select id="adminSellerSelect">
-  <option value="">Select seller</option>
-</select>
-
-<button class="greenBtn" onclick="approveSelectedSeller()">APPROVE SELLER</button>
-
-<div id="adminSellerMsg" class="notice">
-  Select a seller to approve.
+    
+<div class="panel">
+  <h2>Current Auction Lots</h2>
+  <div id="adminLots">No lots yet.</div>
 </div>
-
-<br>
-    </div>
-
   </div>
 </section>
 
@@ -752,7 +731,6 @@ th,td{
 
     
     
-    <label>Account number</label>
    <label>Bank Account / IBAN Number</label>
     <input id="sellerAccountNumber">
    <div class="notice">
@@ -760,6 +738,7 @@ th,td{
 <div class="small">
   For your security, we recommend that sellers send their final payment instructions to the winning bidder through the Dream Clivias system or directly via WhatsApp. Always confirm that you are communicating with the correct winning bidder before sending payment details.
 </div>
+     </div>
    
 
     <br><br>
@@ -778,8 +757,9 @@ th,td{
 
 <div id="selectedSellerNotice" class="notice">
   No seller selected yet.
-    
-    <button class="goldBtn" onclick="confirmSellerBank()">CONFIRM BANK ACCOUNT</button>
+</div>
+
+<button class="goldBtn" onclick="confirmSellerBank()">CONFIRM BANK ACCOUNT</button>
 </section>
   <section id="pageInvoices" class="page hidden">
   <div class="panel">
@@ -798,14 +778,6 @@ th,td{
     <p class="small">Actual plant photo supplied for this auction lot.</p>
   </div>
 </div>
-uality
-Insights
-Settings
-dream-clivias-auction
-/
-index.html
-in
-main
 
 
 <script>
@@ -835,6 +807,10 @@ let state = {
 function save(){
   try{
     localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    function validPhoneNumber(phone){
+  const cleaned=String(phone||"").replace(/[\s()-]/g,"");
+  return /^\+?[0-9]{9,15}$/.test(cleaned);
+}
   }catch(e){
     alert("The browser could not save the data. Large photos can use too much browser storage.");
   }
@@ -879,10 +855,15 @@ function registerSeller(){
   const name=document.getElementById("sellerName").value.trim();
   const phone=document.getElementById("sellerPhone").value.trim();
   const email=document.getElementById("sellerEmail").value.trim();
+  if(!validPhoneNumber(phone)){
+  alert("Please enter a valid phone / WhatsApp number.");
+  return;
+}
   const country=document.getElementById("sellerCountry").value.trim();
+  const accountNumber=document.getElementById("sellerAccountNumber").value.trim();
 const rulesAccepted=document.getElementById("sellerRulesAccepted").checked;
-  if(!name || !phone || !email || !country || !rulesAccepted){
-    alert("Please enter your name, WhatsApp number and email.");
+  if(!name || !phone || !email || !country || !accountNumber || !rulesAccepted){
+    alert("Please complete all required seller details, including your bank account number, and accept the Rules & Terms.");
     return;
   }
 
@@ -893,11 +874,7 @@ const rulesAccepted=document.getElementById("sellerRulesAccepted").checked;
     email,
     town:document.getElementById("sellerTown").value.trim(),
     country:document.getElementById("sellerCountry").value.trim(),
-    bankName:document.getElementById("sellerBankName").value.trim(),
-    accountHolder:document.getElementById("sellerAccountHolder").value.trim(),
-    accountNumber:document.getElementById("sellerAccountNumber").value.trim(),
-    bankCode:document.getElementById("sellerBankCode").value.trim(),
-    swift:document.getElementById("sellerSwift").value.trim(),
+    accountNumber,
 bankConfirmed:false,
     bankChangePending:false,
     rulesAccepted:true,
@@ -919,7 +896,7 @@ refreshSellerSelect();
 
   select.innerHTML='<option value="">Select seller</option>';
 
-  (state.sellers||[]).filter(seller=>seller.approved).forEach(seller=>{
+  (state.sellers||[]).forEach(seller=>{
     const option=document.createElement("option");
     option.value=seller.id;
     option.textContent=seller.name;
@@ -959,10 +936,6 @@ refreshSellerSelect();
   function selectSeller(){
   const sellerId=document.getElementById("sellerSelect").value;
   const seller=(state.sellers||[]).find(s=>s.id===sellerId);
-   if(!seller || !seller.approved){
-  document.getElementById("lotMsg").textContent="Please select an approved seller first.";
-  return;
-} 
   const notice=document.getElementById("selectedSellerNotice");
 
   if(!seller){
@@ -1023,8 +996,7 @@ if(!name || !phone || !address || !suburb || !postal || !country || !accountNumb
 suburb:document.getElementById("regSuburb").value.trim(),
 postal:document.getElementById("regPostal").value.trim(),
 country:document.getElementById("regCountry").value.trim(),
-accountNumber:document.getElementById("regAccountNumber").value.trim(),
-swift:document.getElementById("regSwift").value.trim(),    
+accountNumber:document.getElementById("regAccountNumber").value.trim(),    
 defaultNumber:document.getElementById("regDefaultNumber").value.trim(),
     bankConfirmed:false,
     rulesAccepted:true,
@@ -1108,6 +1080,7 @@ function openAdmin(){
     fillSettings();
     renderAdminLots();
     refreshAdminAuctionSelect();
+    refreshLotCategorySelect();
     refreshAdminSellerSelect();
   }else{
     document.getElementById("adminLoginMsg").textContent="Incorrect password.";
@@ -1297,8 +1270,9 @@ function fillSettings(){
   document.getElementById("setAuctionName").value=state.settings.auctionName;
   document.getElementById("setIncrement").value=state.settings.increment;
   document.getElementById("setDeliveryFee").value=state.settings.deliveryFee;
-  
+  document.getElementById("setBank").value=state.settings.bank||"";
   document.getElementById("setAccountNumber").value=state.settings.accountNumber;
+  document.getElementById("setBranchCode").value=state.settings.branchCode||"";
  
 }
 
@@ -1307,6 +1281,9 @@ function saveSettings(){
   state.settings.increment=Number(document.getElementById("setIncrement").value)||50;
   state.settings.deliveryFee=Number(document.getElementById("setDeliveryFee").value)||0;
   state.settings.accountNumber=document.getElementById("setAccountNumber").value.trim();
+  state.settings.bank=document.getElementById("setBank").value.trim();
+  state.settings.accountName=document.getElementById("setAccountName").value.trim();
+  state.settings.branchCode=document.getElementById("setBranchCode").value.trim();
  
   
   
@@ -1335,8 +1312,8 @@ async function addLot(){
   const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
   const sellerId=document.getElementById("sellerSelect").value;
 const seller=(state.sellers||[]).find(s=>s.id===sellerId);
-  if(!seller || !seller.approved){
-  document.getElementById("lotMsg").textContent="Please select an approved seller first.";
+  if(!seller){
+  document.getElementById("lotMsg").textContent="Please select a seller first.";
   return;
 }
  const listingFee=seller.country.toLowerCase()==="south africa" ? 50 : 5;
@@ -1564,7 +1541,7 @@ function setAuctionOpen(open){
 function createInvoices(){
   const winners={};
 
-  state.lots.forEach(lot=>{
+  state.lots.filter(lot=>lot.auctionId===state.selectedAuctionId).forEach(lot=>{
     if(!lot.bids || lot.bids.length===0) return;
 
     const winningBid=lot.bids.slice().sort((a,b)=>b.amount-a.amount)[0];
@@ -1572,7 +1549,20 @@ function createInvoices(){
     if(!winners[winningBid.bidderId]){
       winners[winningBid.bidderId]={
         bidderId:winningBid.bidderId,
+        auctionId:state.selectedAuctionId,
+        currency:(state.auctions.find(a=>a.id===state.selectedAuctionId)||{}).currency||"ZAR",
         bidderName:winningBid.bidderName,
+        bidderFullName:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).name||winningBid.bidderName,
+        bidderPhone:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).phone||"",
+        bidderEmail:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).email||"",
+        bidderTown:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).town||"",
+        bidderProvince:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).province||"",
+        bidderCountry:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).country||"",
+        bidderAddress:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).address||"",
+        bidderSuburb:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).suburb||"",
+        bidderCountry:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).country||"",
+        bidderPostalCode:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).postalCode||"",
+items:[],
         lots:[],
      total:0,
 status:"UNPAID"
@@ -1607,11 +1597,23 @@ function renderInvoices(){
 
   return `
     <div>
-      ${escapeHtml(x.lot)} - R${x.amount}
+      ${escapeHtml(x.lot)} - ${inv.currency==="EUR" ? "€" : "R"}${x.amount}
       ${seller ? `
         <div class="notice">
           Seller: ${escapeHtml(seller.name)}<br>
-          Bank: ${escapeHtml(seller.bankName||"")}<br>
+          Seller WhatsApp: ${escapeHtml(seller.phone||"")}<br>
+          The seller will send the final payment instructions directly to the winning bidder.<br>
+          Winning buyer: ${escapeHtml(inv.bidderFullName||inv.bidderName||"")}<br>
+Buyer WhatsApp: ${escapeHtml(inv.bidderPhone||"")}<br>
+Buyer email: ${escapeHtml(inv.bidderEmail||"")}<br>
+Delivery address: ${escapeHtml(inv.bidderAddress||"")}<br>
+Suburb: ${escapeHtml(inv.bidderSuburb||"")}<br>
+Town / City: ${escapeHtml(inv.bidderTown||"")}<br>
+Province / Region: ${escapeHtml(inv.bidderProvince||"")}<br>
+Country: ${escapeHtml(inv.bidderCountry||"")}<br>
+Postal Code: ${escapeHtml(inv.bidderPostalCode||"")}<br>
+Please confirm that the payment details come from the correct seller.<br>
+The seller may send the payment instructions through Dream Clivias or WhatsApp.
           Account holder: ${escapeHtml(seller.accountHolder||"")}<br>
           Account / IBAN: ${escapeHtml(seller.accountNumber||"")}<br>
           Branch / Routing Code: ${escapeHtml(seller.bankCode||"")}<br>
@@ -1622,7 +1624,7 @@ function renderInvoices(){
     </div>
   `;
 }).join("")}
-      <b>Total: R${inv.total + Number(state.settings.deliveryFee||0)}</b>
+      <b>Total: ${inv.currency==="EUR" ? "€" : "R"}${inv.total}</b>
     </div>
   `).join("");
 }
@@ -1645,7 +1647,6 @@ const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
         <th>Name</th>
         <th>Start</th>
         <th>Current</th>
-        <th>Status</th>
 <th>Action</th>
       </tr>
 
@@ -1657,9 +1658,7 @@ const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
           <td>${escapeHtml(lot.name)}</td>
          <td>${currencySymbol}${lot.startBid}</td>
 <td>${currencySymbol}${currentBid(lot)}</td>
-<td>${lot.approved ? "APPROVED" : "WAITING"}</td>
           <td>
-  <button class="greenBtn" onclick="approveLot('${lot.id}')">Approve</button>
   <button class="redBtn" onclick="deleteLot('${lot.id}')">Delete</button>
 </td>
         </tr>
@@ -1683,13 +1682,7 @@ function approveLot(id){
   renderAdminLots();
   renderLots();
 }
-function deleteLot(id){
-  if(!confirm("Delete this auction lot?")) return;
-  state.lots=state.lots.filter(l=>l.id!==id);
-  save();
-  renderAdminLots();
-  renderLots();
-}
+
 
 function escapeHtml(str){
   return String(str??"")
@@ -1704,6 +1697,7 @@ load();
 updateHeader();
 refreshBidderSelect();
 showPage("register");
+refreshSellerSelect();
 </script>
 
 <footer style="text-align:center;padding:25px 10px;color:#aaa;font-size:13px;">
