@@ -702,21 +702,21 @@ th,td{
     <p>2. A valid bank account number must be supplied and confirmed before bidding is allowed.</p>
     <p>3. ZAR bids increase by the R50 or R100 increment shown for the lot. EUR bids increase by €5.</p>
     <p>4. A bidder may bid up to R5,000 on ZAR auctions or €350 on EUR auctions without an additional registration/security fee. To unlock each additional bidding bracket, the bidder must pay R150 for the next R5,000 ZAR capacity or €15 for the next €350 EUR capacity.</p>
-<p>5. <p>5. Each R150 (ZAR) or €15 (EUR) registration/security fee is payable once for that bidding-capacity bracket and applies across Dream Clivias auctions. If a bidder has an unpaid invoice, further bidding is blocked until all outstanding invoices are paid.</p>
+    <p>5. Each R150 (ZAR) or €15 (EUR) registration/security fee is payable once for that bidding-capacity bracket and applies across Dream Clivias auctions. If a bidder has an unpaid invoice, further bidding is blocked until all outstanding invoices are paid.</p>
     <p>6. Winning bidders must pay the seller directly for the winning plant within the required payment period. Any separate Dream Clivias Auction fees or invoices must be paid to Dream Clivias as stated on the relevant invoice.</p>
-    <p>7. <p>7. If a bidder has an unpaid invoice, further bidding is blocked until all outstanding invoices are paid.</p>
+    <p>7. If a bidder has an unpaid invoice, further bidding is blocked until all outstanding invoices are paid.</p>
 
     <h3>Seller Rules</h3>
     <p>8. Sellers must register with correct contact details and a valid bank account number. The seller is responsible for ensuring that all information supplied is accurate and belongs to the registered seller.</p>
     <p>9. The seller's registered bank account number must be confirmed before selling and payment-related functions are enabled. Changes to a confirmed bank account number require Dream Clivias Admin approval.</p>
    <p>10. Seller listing fee: R50 per plant in ZAR auctions and €5 per plant in EUR auctions.</p>
-    <p>11. <p>11. Seller commission: For ZAR auctions, if a plant sells for more than R2,000, the seller pays Dream Clivias 10% of the winning bid less the R50 listing fee. No commission is charged on sales of R2,000 or less. For EUR auctions, the commission threshold and rate will be determined separately.</p>
-
+    <p>11. Seller commission: For ZAR auctions, if a plant sells for more than R2,000, the seller pays Dream Clivias 10% of the winning bid less the R50 listing fee. No commission is charged on sales of R2,000 or less. For EUR auctions, the commission threshold and rate will be determined separately.</p>
+    <p>12. Sellers are encouraged to promote their listed plants using the Facebook, WhatsApp and other sharing options provided by Dream Clivias Auction to increase exposure to potential bidders.</p>
+    
     <h3>Plant Photo Rules</h3>
-    <p>12.Sellers are encouraged to promote their listed plants using the Facebook, WhatsApp and other sharing options provided by Dream Clivias Auction to increase exposure to potential bidders.
     <p>13. No business logos, phone numbers, WhatsApp numbers, websites, email addresses or advertising may appear on plant photos.</p>
     <p>14. Breeding names and a small copyright mark are allowed on plant photos.</p>
-    <p>15. <p>15. Flowers containing more than 20% orange colour may not qualify for the auction. The AI system will check the flower photo automatically. If the AI is uncertain, the plant will be flagged for Admin review rather than automatically rejected.</p>
+    <p>15. Flowers containing more than 20% orange colour may not qualify for the auction. The AI system will check the flower photo automatically. If the AI is uncertain, the plant will be flagged for Admin review rather than automatically rejected.</p>
 
     <h3>Export Services</h3>
     <p>16. Export service provider details are not displayed publicly.</p>
@@ -727,11 +727,11 @@ th,td{
     <p>19. Buyer delivery/contact details are shared only where required to complete a winning order.</p>
     <p>20. Payment for a winning item is made directly by the buyer to the seller. Dream Clivias Auction is not the recipient of the purchase payment.</p>
     <p>21. Any transaction, payment, delivery or other arrangement between a buyer and seller is undertaken at their own risk. Dream Clivias Auction provides the auction platform but is not a party to the sale between the buyer and seller.</p>
-<p>22. All Dream Clivias Auction platform fees, listing fees, registration/security fees, commission payments and export connection fees are non-refundable once paid.</p>
-<p>23. Dream Clivias Auction may update these rules when necessary. Updated rules may require acceptance again.</p>
+    <p>22. All Dream Clivias Auction platform fees, listing fees, registration/security fees, commission payments and export connection fees are non-refundable once paid.</p>
+     <p>23. Dream Clivias Auction may update these rules when necessary. Updated rules may require acceptance again.</p>
 
-<p>24. The bidder and seller/owner are responsible for completing the transaction, payment and delivery arrangements between themselves.</p>
-  <p>25. Dream Clivias Auction does not guarantee that any plant listed for auction will receive bids or be sold. Sellers are encouraged to actively promote and share their auction plants through Facebook, WhatsApp, social media and any other sharing or advertising options provided by Dream Clivias Auction. These promotional tools are made available to all sellers to help increase exposure, but the responsibility for promoting a listed plant and attracting potential bidders remains with the seller.</p>
+     <p>24. The bidder and seller/owner are responsible for completing the transaction, payment and delivery arrangements between themselves.</p>
+    <p>25. Dream Clivias Auction does not guarantee that any plant listed for auction will receive bids or be sold. Sellers are encouraged to actively promote and share their auction plants through Facebook, WhatsApp, social media and any other sharing or advertising options provided by Dream Clivias Auction. These promotional tools are made available to all sellers to help increase exposure, but the responsibility for promoting a listed plant and attracting potential bidders remains with the seller.</p>
   </div>
 </section>
   <section id="pageSeller" class="page hidden">
@@ -750,6 +750,7 @@ th,td{
 
     <label>Town</label>
     <input id="sellerTown">
+    <label>Country</label>
 <input id="sellerCountry" placeholder="e.g. South Africa, United States, United Kingdom, Australia" autocomplete="country-name">
 
     
@@ -930,22 +931,10 @@ refreshSellerSelect();
   });
 }
   function refreshAdminSellerSelect(){
-    function approveSelectedSeller(){
-  const sellerId=document.getElementById("adminSellerSelect").value;
-  const seller=(state.sellers||[]).find(s=>s.id===sellerId);
-
-  if(!seller){
-    document.getElementById("adminSellerMsg").textContent="Please select a seller first.";
     return;
   }
 
-  seller.approved=true;
-  save();
-  refreshSellerSelect();
-  refreshAdminSellerSelect();
-
-  document.getElementById("adminSellerMsg").textContent=
-    seller.name + " approved.";
+  
 }
   const select=document.getElementById("adminSellerSelect");
   if(!select) return;
@@ -1225,7 +1214,7 @@ categoryCapacity:12,
   state.selectedAuctionId=auction.id;
   save();
   refreshAdminAuctionSelect();
-  
+  refreshLotCategorySelect();
   document.getElementById("selectedAuctionNotice").textContent=
   "Selected auction: " + name + " (" + type + ")";
 
@@ -1361,12 +1350,13 @@ async function addLot(){
   const plantFile=document.getElementById("lotPlant").files[0];
   const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
   const sellerId=document.getElementById("sellerSelect").value;
+  const listingCurrency=auction && auction.currency==="EUR" ? "EUR" : "ZAR";
+const listingFee=listingCurrency==="EUR" ? 5 : 50;
 const seller=(state.sellers||[]).find(s=>s.id===sellerId);
   if(!seller){
   document.getElementById("lotMsg").textContent="Please select a seller first.";
   return;
 }
- const sellerCountry=String(seller.country||"").trim().toLowerCase();
 if(!auction){
   document.getElementById("lotMsg").textContent="Please select an auction first.";
   return;
@@ -1444,7 +1434,7 @@ function shareLotWhatsApp(id){
   const lot=(state.lots||[]).find(l=>l.id===id);
   if(!lot) return;
 
- const url=window.location.origin+window.location.pathname+"#lot-"+id;
+ const url=window.location.origin+window.location.pathname+"#lot-"+encodeURIComponent(id);
   window.open(
     "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url),
     "_blank"
@@ -1526,7 +1516,6 @@ box.innerHTML=auctionLots.map((lot,i)=>{
 
 <div class="meta">
 
-        <div class="meta">
           Leaves: ${lot.leaves} &nbsp;•&nbsp; Offsets: ${lot.offsets}
         </div>
 
@@ -1549,7 +1538,7 @@ box.innerHTML=auctionLots.map((lot,i)=>{
   }).join("");
 
 if(window.location.hash){
-  const sharedLot=document.querySelector(window.location.hash);
+  const sharedLot=document.getElementById(window.location.hash.slice(1));
   if(sharedLot){
     sharedLot.scrollIntoView({behavior:"smooth",block:"start"});
   }
@@ -1585,10 +1574,7 @@ if(unpaidInvoice){
     showPage("register");
     return;
   }
-    if(!bidder.bankConfirmed){
-  alert("Your bank account number must be confirmed before you can bid.");
-  return;
-}
+    
 
   const lot=state.lots.find(l=>l.id===lotId);
   const amount=Number(document.getElementById("bid_"+lotId).value);
@@ -1618,19 +1604,13 @@ if(!securityProofPending && amount>=secondWarningLevel && amount<=maxBidCapacity
   alert("URGENT SECURITY WARNING: You are very close to your "+
   currencySymbol+maxBidCapacity.toLocaleString()+" bidding limit. Pay the "+
   currencySymbol+securityFeeAmount+" security fee now to avoid bidding being interrupted.");
-if(securityFeeNeeded){
-  alert("URGENT SECURITY WARNING: You are very close to your "+
-  currencySymbol+maxBidCapacity.toLocaleString()+" bidding limit. Pay the "+
-  currencySymbol+securityFeeAmount+" security fee now to avoid bidding being interrupted.");
 }
 if(securityFeeNeeded){
   alert(securityProofPending
   ? "BIDDING PAUSED: Your "+currencySymbol+securityFeeAmount+" payment proof is waiting for verification. Your next "+currencySymbol+securityBracketSize.toLocaleString()+" bidding bracket will unlock after confirmation."
   : "BIDDING PAUSED: Your "+currencySymbol+maxBidCapacity.toLocaleString()+" bidding limit has been reached. Pay the "+currencySymbol+securityFeeAmount+" security fee and upload proof of payment to unlock the next "+currencySymbol+securityBracketSize.toLocaleString()+" bidding bracket.");
-  return;
+ return;
 }
-}
-  }
   
 
 if(!Number.isFinite(amount) || amount % bidStep !== 0){
@@ -1638,7 +1618,6 @@ if(!Number.isFinite(amount) || amount % bidStep !== 0){
   return;
 }
 
-  if(amount<required){
     alert("Minimum valid bid is "+currencySymbol+required);
     return;
   }
