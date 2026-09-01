@@ -495,7 +495,14 @@ th,td{
       </select>
 
       <div id="selectedBidderNotice" class="notice">No bidder selected yet.</div>
-      <button class="goldBtn" onclick="confirmSellerBank()">CONFIRM BANK ACCOUNT</button>
+      <div id="bidderCapacityNotice" class="notice">
+  Select a bidder to see bidding capacity.
+</div>
+      <label>Security Fee - Proof of Payment</label>
+<input id="securityProof" type="file" accept="image/*,.pdf">
+<button class="goldBtn" onclick="submitSecurityProof()">SUBMIT PAYMENT PROOF</button>
+<div id="securityProofMsg" class="small"></div>
+      <button class="goldBtn" onclick="confirmBidderBank()">CONFIRM BANK ACCOUNT</button>
 </div>
 </section>
 
@@ -659,6 +666,10 @@ th,td{
 
     
 <div class="panel">
+  <div class="panel">
+  <h2>Security Payment Verification</h2>
+  <button class="goldBtn" onclick="confirmSecurityProof()">CONFIRM PENDING SECURITY PAYMENT</button>
+</div>
   <h2>Current Auction Lots</h2>
   <div id="adminLots">No lots yet.</div>
 </div>
@@ -674,9 +685,9 @@ th,td{
     <h3>Buyer Rules</h3>
     <p>1. Buyers must register with correct contact details and full delivery address.</p>
     <p>2. A valid bank account number must be supplied and confirmed before bidding is allowed.</p>
-    <p>3. Bids may increase by R50 or R100 at a time.</p>
-    <p>4. Higher bidding limits require the applicable qualification fee before bidding above that level.</p>
-    <p>5. Qualification fees are paid once for each higher bracket reached.</p>
+    <p>3. ZAR bids increase by the R50 or R100 increment shown for the lot. EUR bids increase by €5.</p>
+    <p>4. A bidder may bid up to R5,000 on ZAR auctions or €350 on EUR auctions without an additional registration/security fee. To unlock each additional bidding bracket, the bidder must pay R150 for the next R5,000 ZAR capacity or €15 for the next €350 EUR capacity.</p>
+<p>5. Each registration/security fee is payable once for that bidding-capacity bracket and applies across Dream Clivias auctions. If a bidder has an unpaid invoice, further bidding is blocked until all outstanding invoices are paid.</p>
     <p>6. Winning bidders must pay their invoice within the required period.</p>
     <p>7. Unpaid invoices may result in warnings. After the 5th warning, the buyer may be banned and must register again from the beginning.</p>
 
@@ -717,14 +728,14 @@ th,td{
     <input id="sellerName" placeholder="Full name">
 
     <label>WhatsApp number</label>
-    <input id="sellerPhone" placeholder="e.g. 0821234567">
+    <input id="sellerPhone" placeholder="e.g. +27 82 123 4567">
 
     <label>Email address</label>
     <input id="sellerEmail" type="email">
 
     <label>Town</label>
     <input id="sellerTown">
-<label>Country</label>
+<input id="sellerCountry" placeholder="e.g. South Africa, United States, United Kingdom, Australia" autocomplete="country-name">
 <input id="sellerCountry" placeholder="e.g. South Africa, USA, UK, Australia">
     
    
@@ -859,10 +870,14 @@ function registerSeller(){
   alert("Please enter a valid phone / WhatsApp number.");
   return;
 }
+  if(!validPhoneNumber(phone)){
+  alert("Please enter a valid phone / WhatsApp number.");
+  return;
+}
   const country=document.getElementById("sellerCountry").value.trim();
   const accountNumber=document.getElementById("sellerAccountNumber").value.trim();
 const rulesAccepted=document.getElementById("sellerRulesAccepted").checked;
-  if(!name || !phone || !email || !country || !accountNumber || !rulesAccepted){
+if(!name || !phone || !email || !country || !accountNumber || !rulesAccepted){
     alert("Please complete all required seller details, including your bank account number, and accept the Rules & Terms.");
     return;
   }
@@ -929,7 +944,7 @@ refreshSellerSelect();
   (state.sellers||[]).forEach(seller=>{
     const option=document.createElement("option");
     option.value=seller.id;
-    option.textContent=seller.name + (seller.approved ? " - APPROVED" : " - WAITING");
+    option.textContent=seller.name;
     select.appendChild(option);
   });
 }
@@ -971,7 +986,10 @@ refreshSellerSelect();
   function registerBidder(){
   const name=document.getElementById("regName").value.trim();
   const phone=document.getElementById("regPhone").value.trim();
-
+if(!validPhoneNumber(phone)){
+  alert("Please enter a valid phone / WhatsApp number.");
+  return;
+}
   const address=document.getElementById("regAddress").value.trim();
 const suburb=document.getElementById("regSuburb").value.trim();
 const postal=document.getElementById("regPostal").value.trim();
@@ -1003,6 +1021,12 @@ defaultNumber:document.getElementById("regDefaultNumber").value.trim(),
 rulesAcceptedDate:new Date().toISOString(),
     notifyNextAuction:document.getElementById("regNotifyNextAuction").value,
     delivery:document.getElementById("regDelivery").value
+   securityFeesPaidZAR:0,
+securityFeesPaidEUR:0,
+    securityProofStatus:"NONE",
+securityProofCurrency:"",
+    securityProofAmount:0,
+securityProof:"",
   };
   state.bidders.push(bidder);
   state.selectedBidderId=bidder.id;
@@ -1038,10 +1062,22 @@ function selectedBidderNotice(){
   const notice=document.getElementById("selectedBidderNotice");
 
   if(!bidder){
-    notice.textContent="No bidder selected yet.";
-    return;
-  }
-
+  notice.textContent="No bidder selected yet.";
+  document.getElementById("bidderCapacityNotice").textContent="Select a bidder to see bidding capacity.";
+  return;
+}
+const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+const isEUR=auction && auction.currency==="EUR";
+const capacity=bracket + Math.floor(Number(isEUR ? bidder.securityFeesPaidEUR||0 : bidder.securityFeesPaidZAR||0)/fee)*bracket;
+document.getElementById("bidderCapacityNotice").textContent=
+  "Current bidding capacity: "+(isEUR ? "€" : "R")+capacity.toLocaleString();
+  if(
+  bidder.securityProofStatus==="PENDING_AI" &&
+  bidder.securityProofCurrency===(isEUR ? "EUR" : "ZAR")
+){
+  document.getElementById("bidderCapacityNotice").textContent+=
+      " | "+(bidder.securityProofCurrency==="EUR" ? "€" : "R")+Number(bidder.securityProofAmount||0)+" payment proof: WAITING FOR VERIFICATION";
+}
   notice.textContent =
     "Selected bidder: " + bidder.name +
     (bidder.bankConfirmed
@@ -1316,8 +1352,9 @@ const seller=(state.sellers||[]).find(s=>s.id===sellerId);
   document.getElementById("lotMsg").textContent="Please select a seller first.";
   return;
 }
- const listingFee=seller.country.toLowerCase()==="south africa" ? 50 : 5;
-const listingCurrency=seller.country.toLowerCase()==="south africa" ? "ZAR" : "EUR"; 
+ const sellerCountry=String(seller.country||"").trim().toLowerCase();
+const listingCurrency=auction.currency==="EUR" ? "EUR" : "ZAR";
+const listingFee=listingCurrency==="EUR" ? 5 : 50;
 if(!auction){
   document.getElementById("lotMsg").textContent="Please select an auction first.";
   return;
@@ -1414,7 +1451,7 @@ box.innerHTML=auctionLots.map((lot,i)=>{
     <div class="lotCard">
       <div class="lotTop">
         <span>LOT-${String(i+1).padStart(3,"0")}</span>
-        <span>Min +${currencySymbol}${auction && auction.currency==="EUR" ? 5 : 50}</span>
+        <span>Min +${currencySymbol}${auction && auction.currency==="EUR" ? 5 : Number(lot.increment||state.settings.increment||50)}</span>
       </div>
 
       <div class="flowerWrap">
@@ -1486,6 +1523,43 @@ if(unpaidInvoice){
   const amount=Number(document.getElementById("bid_"+lotId).value);
  const required=nextBid(lot);
   const bidStep=auction && auction.currency==="EUR" ? 5 : 50;
+  if(securityFeeNeeded){
+  alert(...)
+  return;
+}
+  const securityFeeAmount=auction && auction.currency==="EUR" ? 15 : 150;
+const securityBracketSize=auction && auction.currency==="EUR" ? 350 : 5000;
+const paidSecurityFees=Number(
+  auction && auction.currency==="EUR"
+    ? bidder.securityFeesPaidEUR||0
+    : bidder.securityFeesPaidZAR||0
+);
+const maxBidCapacity=securityBracketSize + Math.floor(paidSecurityFees/securityFeeAmount)*securityBracketSize;
+const securityFeeNeeded=amount>maxBidCapacity;
+  const firstWarningLevel=maxBidCapacity-(auction.currency==="EUR" ? 120 : 2000);
+const secondWarningLevel=maxBidCapacity-(auction.currency==="EUR" ? 60 : 1000);
+  const securityProofPending=bidder.securityProofStatus==="PENDING_AI";
+  if(!securityProofPending && amount>=firstWarningLevel && amount<secondWarningLevel){
+  alert("SECURITY WARNING: You are approaching your "+currencySymbol+
+  maxBidCapacity.toLocaleString()+" bidding limit. Pay the next "+
+  currencySymbol+securityFeeAmount+" security fee to unlock the next "+
+  currencySymbol+securityBracketSize.toLocaleString()+" bidding bracket.");
+if(!securityProofPending && amount>=secondWarningLevel && amount<=maxBidCapacity){
+  alert("URGENT SECURITY WARNING: You are very close to your "+
+  currencySymbol+maxBidCapacity.toLocaleString()+" bidding limit. Pay the "+
+  currencySymbol+securityFeeAmount+" security fee now to avoid bidding being interrupted.");
+if(securityFeeNeeded){
+  alert(securityProofPending
+  ? "BIDDING PAUSED: Your "+currencySymbol+securityFeeAmount+" payment proof is waiting for verification. Your next "+currencySymbol+securityBracketSize.toLocaleString()+" bidding bracket will unlock after confirmation."
+  : "BIDDING PAUSED: Your "+currencySymbol+maxBidCapacity.toLocaleString()+" bidding limit has been reached. Pay the "+currencySymbol+securityFeeAmount+" security fee and upload proof of payment to unlock the next "+currencySymbol+securityBracketSize.toLocaleString()+" bidding bracket.");
+  return;
+}
+}
+  }
+  if(securityFeeNeeded){
+  alert("Your current bidding capacity is R"+maxBidCapacity+". Pay the next R150 security fee to unlock another R5,000 bidding bracket.");
+  return;
+}
 
 if(!Number.isFinite(amount) || amount % bidStep !== 0){
   alert("Bids must be in multiples of "+currencySymbol+bidStep+".");
@@ -1562,7 +1636,6 @@ function createInvoices(){
         bidderSuburb:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).suburb||"",
         bidderCountry:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).country||"",
         bidderPostalCode:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).postalCode||"",
-items:[],
         lots:[],
      total:0,
 status:"UNPAID"
@@ -1578,7 +1651,9 @@ status:"UNPAID"
     winners[winningBid.bidderId].total+=Number(winningBid.amount);
   });
 
-  state.invoices=Object.values(winners);
+  state.invoices=[...(state.invoices||[]), ...Object.values(winners)];
+  save();
+  renderInvoices();
 }
 
 function renderInvoices(){
@@ -1609,16 +1684,12 @@ Buyer email: ${escapeHtml(inv.bidderEmail||"")}<br>
 Delivery address: ${escapeHtml(inv.bidderAddress||"")}<br>
 Suburb: ${escapeHtml(inv.bidderSuburb||"")}<br>
 Town / City: ${escapeHtml(inv.bidderTown||"")}<br>
+Postal Code: ${escapeHtml(inv.bidderPostalCode||"")}<br>
 Province / Region: ${escapeHtml(inv.bidderProvince||"")}<br>
 Country: ${escapeHtml(inv.bidderCountry||"")}<br>
 Postal Code: ${escapeHtml(inv.bidderPostalCode||"")}<br>
 Please confirm that the payment details come from the correct seller.<br>
 The seller may send the payment instructions through Dream Clivias or WhatsApp.
-          Account holder: ${escapeHtml(seller.accountHolder||"")}<br>
-          Account / IBAN: ${escapeHtml(seller.accountNumber||"")}<br>
-          Branch / Routing Code: ${escapeHtml(seller.bankCode||"")}<br>
-          SWIFT / BIC: ${escapeHtml(seller.swift||"")}<br>
-          Country: ${escapeHtml(seller.country||"")}
         </div>
       ` : ""}
     </div>
@@ -1666,25 +1737,60 @@ const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
     </table>
   `;
 }
-function approveLot(id){
-  const lot=state.lots.find(l=>l.id===id);
-  if(!lot) return;
 
-  lot.approved=true;
 
-  const auction=(state.auctions||[]).find(a=>a.id===lot.auctionId);
-  if(auction && auction.lots){
-    const auctionLot=auction.lots.find(l=>l.id===id);
-    if(auctionLot) auctionLot.approved=true;
-  }
-
+function deleteLot(id){
+  state.lots=state.lots.filter(lot=>lot.id!==id);
+  (state.auctions||[]).forEach(auction=>{
+    auction.lots=(auction.lots||[]).filter(lot=>(typeof lot==="object" ? lot.id : lot)!==id);
+  });
   save();
   renderAdminLots();
   renderLots();
 }
+  async function submitSecurityProof(){
+  function confirmSecurityProof(){
+  const bidder=(state.bidders||[]).find(b=>b.securityProofStatus==="PENDING_AI");
 
+  if(!bidder){
+    alert("No pending security payment proof found.");
+    return;
+  }
+    if(bidder.securityProofCurrency==="EUR"){
+  bidder.securityFeesPaidEUR=Number(bidder.securityFeesPaidEUR||0)+Number(bidder.securityProofAmount||15);
+}else{
+  bidder.securityFeesPaidZAR=Number(bidder.securityFeesPaidZAR||0)+Number(bidder.securityProofAmount||150);
+}
+}
+ async function submitSecurityProof(){
+    const bidder=(state.bidders||[]).find(b=>b.id===state.selectedBidderId);
+  const file=document.getElementById("securityProof").files[0];
 
-function escapeHtml(str){
+  if(!bidder || !file){
+    document.getElementById("securityProofMsg").textContent="Select a bidder and upload proof of payment.";
+    return;
+  }
+    if(bidder.securityProofStatus==="PENDING_AI"){
+  document.getElementById("securityProofMsg").textContent=
+    "You already have a payment proof waiting for verification. Please wait for it to be confirmed before uploading another.";
+  return;
+}
+    
+  const proofData=await fileToDataURL(file);
+bidder.securityProof=proofData;
+const securityProofPending=
+  bidder.securityProofStatus==="PENDING_AI" &&
+  bidder.securityProofCurrency===(auction && auction.currency==="EUR" ? "EUR" : "ZAR");
+    const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+bidder.securityProofCurrency=auction && auction.currency==="EUR" ? "EUR" : "ZAR";
+    bidder.securityProofAmount=auction && auction.currency==="EUR" ? 15 : 150;
+save();
+
+document.getElementById("securityProofMsg").textContent=
+  "Proof uploaded for "+(bidder.securityProofCurrency==="EUR" ? "€" : "R")+bidder.securityProofAmount+". Waiting for AI payment verification.";
+    }
+}
+  function escapeHtml(str){
   return String(str??"")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
