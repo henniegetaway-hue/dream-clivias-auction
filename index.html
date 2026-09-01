@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">F
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dream Clivias Auction</title>
 
 <style>
@@ -1537,6 +1537,11 @@ const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
   showPage("register");
   return;
 }
+  if(!bidder.bankConfirmed){
+  alert("Please confirm your bank account before bidding.");
+  showPage("register");
+  return;
+}
   const unpaidInvoice=(state.invoices||[]).find(inv=>
   inv.bidderId===bidder.id &&
   inv.status!=="PAID"
@@ -1560,7 +1565,13 @@ const paidSecurityFees=Number(
     : bidder.securityFeesPaidZAR||0
 );
 const maxBidCapacity=securityBracketSize + Math.floor(paidSecurityFees/securityFeeAmount)*securityBracketSize;
-const securityFeeNeeded=amount>maxBidCapacity;
+const currentWinningExposure=(state.lots||[]).reduce((total,otherLot)=>{
+  if(otherLot.id===lotId || otherLot.auctionId!==state.selectedAuctionId) return total;
+  const highest=(otherLot.bids||[]).slice().sort((a,b)=>Number(b.amount)-Number(a.amount))[0];
+  return highest && highest.bidderId===bidder.id ? total+Number(highest.amount||0) : total;
+},0);
+  const securityFeeNeeded=(currentWinningExposure+amount)>maxBidCapacity;
+  const totalExposureAfterBid=currentWinningExposure+amount;
   const firstWarningLevel=maxBidCapacity-(auction.currency==="EUR" ? 120 : 2000);
 const secondWarningLevel=maxBidCapacity-(auction.currency==="EUR" ? 60 : 1000);
   const securityProofPending=
