@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dream Clivias Auction</title>
 
-<style>
+<style>F
 :root{
   --bg:#070c08;
   --panel:#101912;
@@ -521,11 +521,7 @@ th,td{
 </div>
 </section>
 
-      <h3>Auction Rules</h3>
-      <p>Only registered bidders can place bids. Each valid bid must meet the minimum next bid. The highest valid bid when the auction closes wins the lot.</p>
-    </div>
-  </div>
-</section>
+      
 
 <section id="pageLive" class="page hidden">
   <div class="panel">
@@ -652,19 +648,16 @@ th,td{
 <select id="lotCategory">
   <option value="">Select category</option>
 </select>
-            <label>Start bid (R)</label>
+            <label>Start bid</label>
             <input id="lotStart" type="number">
           </div>
         </div>
 
-    <label>Bid increase — R50 or R100 at a time</label>
-        <select id="lotIncrement">
+    <label>Bid increase</label>
+       <select id="lotIncrement">
   <option value="50">R50</option>
  <option value="100">R100</option>
- 
- 
- 
-  
+
 </select>
 
         <label>Flower photo</label>
@@ -907,14 +900,12 @@ bankConfirmed:false,
     rulesAccepted:true,
 rulesAcceptedDate:new Date().toISOString(),
 notifyNextAuction:document.getElementById("sellerNotifyNextAuction").value,
-approved:true
   };
 
   state.sellers=state.sellers||[];
   state.sellers.push(seller);
 save();
 refreshSellerSelect();
-  refreshAdminSellerSelect();
   alert("Seller registration successful. You can now list plants for auction.");
   }
   function refreshSellerSelect(){
@@ -930,25 +921,7 @@ refreshSellerSelect();
     select.appendChild(option);
   });
 }
-  function refreshAdminSellerSelect(){
-    return;
-  }
-
-  
-}
-  const select=document.getElementById("adminSellerSelect");
-  if(!select) return;
-
-  select.innerHTML='<option value="">Select seller</option>';
-
-  (state.sellers||[]).forEach(seller=>{
-    const option=document.createElement("option");
-    option.value=seller.id;
-    option.textContent=seller.name;
-    select.appendChild(option);
-  });
-}
-  function selectSeller(){
+   function selectSeller(){
   const sellerId=document.getElementById("sellerSelect").value;
   const seller=(state.sellers||[]).find(s=>s.id===sellerId);
   const notice=document.getElementById("selectedSellerNotice");
@@ -1117,7 +1090,6 @@ function openAdmin(){
     document.getElementById("adminArea").classList.remove("hidden");
     fillSettings();
     renderAdminLots();
-    refreshAdminAuctionSelect();
     refreshLotCategorySelect();
     refreshAdminSellerSelect();
   }else{
@@ -1166,6 +1138,9 @@ function refreshLotCategorySelect(){
   if(!select) return;
 
   const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+  const incrementSelect=document.getElementById("lotIncrement");
+if(auction && auction.currency==="EUR") incrementSelect.innerHTML='<option value="5">€5</option>';
+if(auction && auction.currency==="ZAR") incrementSelect.innerHTML='<option value="50">R50</option><option value="100">R100</option>';
 
   select.innerHTML='<option value="">Select category</option>';
 
@@ -1385,11 +1360,10 @@ listingCurrency:listingCurrency,
     leaves:Number(document.getElementById("lotLeaves").value)||0,
     offsets:Number(document.getElementById("lotOffsets").value)||0,
     startBid:start,
-    increment:Number(document.getElementById("lotIncrement").value)||state.settings.increment,
+    increment:auction.currency==="EUR" ? 5 : Number(document.getElementById("lotIncrement").value)||50,
     flower,
     plant,
     bids:[],
-approved:true
   });
   
 const newLot=state.lots[state.lots.length-1];
@@ -1401,7 +1375,7 @@ scheduleAuctionAtHalfFull(auction);
   updateAuctionFullStatus(auction);
   save();
 
-  ["lotName","lotLeaves","lotOffsets","lotStart","lotIncrement"].forEach(id=>{
+  ["lotName","lotLeaves","lotOffsets","lotStart"].forEach(id=>{
     document.getElementById(id).value="";
   });
 
@@ -1478,8 +1452,7 @@ function renderLots(){
   const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
 const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
 const auctionLots=state.lots.filter(lot=>
-  lot.auctionId===state.selectedAuctionId &&
-  lot.approved===true
+  lot.auctionId===state.selectedAuctionId
 );
  if(auctionLots.length===0){
     box.innerHTML='<div class="panel">No auction lots have been added yet.</div>';
@@ -1536,7 +1509,9 @@ box.innerHTML=auctionLots.map((lot,i)=>{
       </div>
     </div>`;
   }).join("");
-
+const sharedLotId=window.location.hash.replace("#lot-","");
+const sharedLotData=state.lots.find(lot=>lot.id===sharedLotId);
+if(sharedLotData && sharedLotData.auctionId!==state.selectedAuctionId){state.selectedAuctionId=sharedLotData.auctionId;save();return renderLots();}
 if(window.location.hash){
   const sharedLot=document.getElementById(window.location.hash.slice(1));
   if(sharedLot){
@@ -1567,14 +1542,7 @@ if(unpaidInvoice){
   alert("You have an unpaid invoice. Please pay it before you can bid again.");
   return;
 }
-
-  
-  if(!bidder){
-    alert("Please register or select a bidder first.");
-    showPage("register");
-    return;
-  }
-    
+   
 
   const lot=state.lots.find(l=>l.id===lotId);
   const amount=Number(document.getElementById("bid_"+lotId).value);
@@ -1799,8 +1767,7 @@ function deleteLot(id){
   renderAdminLots();
   renderLots();
 }
-  async function submitSecurityProof(){
-  function confirmSecurityProof(){
+    function confirmSecurityProof(){
   const bidder=(state.bidders||[]).find(b=>b.securityProofStatus==="PENDING_AI");
 
   if(!bidder){
@@ -1829,9 +1796,7 @@ function deleteLot(id){
     
   const proofData=await fileToDataURL(file);
 bidder.securityProof=proofData;
-const securityProofPending=
-  bidder.securityProofStatus==="PENDING_AI" &&
-  bidder.securityProofCurrency===(auction && auction.currency==="EUR" ? "EUR" : "ZAR");
+   bidder.securityProofStatus="PENDING_AI";
     const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
 bidder.securityProofCurrency=auction && auction.currency==="EUR" ? "EUR" : "ZAR";
     bidder.securityProofAmount=auction && auction.currency==="EUR" ? 15 : 150;
@@ -1840,7 +1805,6 @@ save();
 document.getElementById("securityProofMsg").textContent=
   "Proof uploaded for "+(bidder.securityProofCurrency==="EUR" ? "€" : "R")+bidder.securityProofAmount+". Waiting for AI payment verification.";
     }
-}
   function escapeHtml(str){
   return String(str??"")
     .replaceAll("&","&amp;")
