@@ -681,8 +681,6 @@ th,td{
 </div>
 
 <br>
-      <h2>Current Auction Lots</h2>
-      <div id="adminLots"></div>
     </div>
 
   </div>
@@ -753,19 +751,15 @@ th,td{
    
 
     
-   
-<label>Bank Name</label>
-<input id="sellerBankName" placeholder="e.g. Capitec Bank">
-<label>Account Holder Name</label>
-<input id="sellerAccountHolder" placeholder="Name exactly as registered with the bank">    
+    
     <label>Account number</label>
    <label>Bank Account / IBAN Number</label>
     <input id="sellerAccountNumber">
-    <label>Branch / Routing Code</label>
-<input id="sellerBankCode" placeholder="Branch code, routing number, sort code or BSB">
-<label>SWIFT / BIC Code (international payments)</label>
-<input id="sellerSwift" placeholder="e.g. CABLZAJJ">
-   
+   <div class="notice">
+  Your bank account number is used only for payment matching and verification. After the auction, the winning bidder's relevant contact and invoice information will be provided to the seller. The seller must then send the winning bidder the final payment instructions directly.
+<div class="small">
+  For your security, we recommend that sellers send their final payment instructions to the winning bidder through the Dream Clivias system or directly via WhatsApp. Always confirm that you are communicating with the correct winning bidder before sending payment details.
+</div>
    
 
     <br><br>
@@ -778,21 +772,14 @@ th,td{
   <option value="yes">Yes</option>
   <option value="no">No</option>
 </select>
-
 <button class="goldBtn" onclick="registerSeller()">REGISTER AS SELLER</button>
     <label>Already registered seller?</label>
 <select id="sellerSelect" onchange="selectSeller()"></select>
 
 <div id="selectedSellerNotice" class="notice">
   No seller selected yet.
-</div>
     
     <button class="goldBtn" onclick="confirmSellerBank()">CONFIRM BANK ACCOUNT</button>
-    
-    <div class="notice">
-      Seller accounts must be approved by Dream Clivias before plants can be listed for auction.
-    </div>
-  </div>
 </section>
   <section id="pageInvoices" class="page hidden">
   <div class="panel">
