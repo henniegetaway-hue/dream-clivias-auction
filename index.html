@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dream Clivias Auction</title>
 
-<style>F
+<style>
 :root{
   --bg:#070c08;
   --panel:#101912;
@@ -1091,7 +1091,6 @@ function openAdmin(){
     fillSettings();
     renderAdminLots();
     refreshLotCategorySelect();
-    refreshAdminSellerSelect();
   }else{
     document.getElementById("adminLoginMsg").textContent="Incorrect password.";
   }
@@ -1585,10 +1584,10 @@ if(!Number.isFinite(amount) || amount % bidStep !== 0){
   alert("Bids must be in multiples of "+currencySymbol+bidStep+".");
   return;
 }
-
-    alert("Minimum valid bid is "+currencySymbol+required);
-    return;
-  }
+if(amount<required){
+  alert("Minimum valid bid is "+currencySymbol+required);
+  return;
+}
 
   lot.bids=lot.bids||[];
   lot.bids.push({
@@ -1778,7 +1777,11 @@ function deleteLot(id){
   bidder.securityFeesPaidEUR=Number(bidder.securityFeesPaidEUR||0)+Number(bidder.securityProofAmount||15);
 }else{
   bidder.securityFeesPaidZAR=Number(bidder.securityFeesPaidZAR||0)+Number(bidder.securityProofAmount||150);
-}
+ bidder.securityProofStatus="CONFIRMED";
+bidder.securityProof="";
+save();  
+    selectedBidderNotice();
+alert("Security payment confirmed and bidding capacity updated.");  
 }
  async function submitSecurityProof(){
     const bidder=(state.bidders||[]).find(b=>b.id===state.selectedBidderId);
@@ -1803,7 +1806,7 @@ bidder.securityProofCurrency=auction && auction.currency==="EUR" ? "EUR" : "ZAR"
 save();
 
 document.getElementById("securityProofMsg").textContent=
-  "Proof uploaded for "+(bidder.securityProofCurrency==="EUR" ? "€" : "R")+bidder.securityProofAmount+". Waiting for AI payment verification.";
+"Proof uploaded for "+(bidder.securityProofCurrency==="EUR" ? "€" : "R")+bidder.securityProofAmount+". Waiting for AI payment verification.";
     }
   function escapeHtml(str){
   return String(str??"")
