@@ -1037,24 +1037,12 @@ adminSelect.innerHTML='<option value="">Select seller</option>';
   const seller=(state.sellers||[]).find(s=>s.id===sellerId);
   const notice=document.getElementById("selectedSellerNotice");
 
-  if(!seller){
-    notice.textContent="No seller selected yet.";
-    return;
-  }
-
   notice.textContent="Selected seller: " + seller.name;
 }
   function confirmSellerBank(){
   const sellerId=document.getElementById("sellerSelect").value;
   const seller=(state.sellers||[]).find(s=>s.id===sellerId);
-
-  if(!seller){
-    alert("Please select your seller profile first.");
-    return;
-  }
-
   const last4=String(seller.accountNumber||"").slice(-4);
-
   const ok=confirm(
     "Please confirm your seller bank account ending in " + last4 + " is correct."
   );
@@ -1447,7 +1435,7 @@ function isAuctionHalfFull(auction){
   function getNextAuctionSlot(preferredTime){
   const normalSlots=["15:00","17:00","19:00"];
 const slots=preferredTime && normalSlots.includes(preferredTime)
-  ? [preferredTime,...normalSlots.filter(t=>t!==preferredTime)]
+  ? [preferredTime]
   : normalSlots;
   const existing=(state.auctions||[]).filter(a=>a.auctionDate && a.auctionTime);
 
@@ -1467,10 +1455,17 @@ const slots=preferredTime && normalSlots.includes(preferredTime)
 const slotDate=new Date(date);
 slotDate.setHours(hour,minute,0,0);
 if(slotDate<=new Date()) continue;
-        const used=existing.some(a=>
-          a.auctionDate===dateKey &&
-          a.auctionTime===time
-        );
+        const slotStart=new Date(dateKey+"T"+time+":00+02:00").getTime();
+const slotEnd=slotStart+(2*60*60*1000);
+
+const used=(state.auctions||[]).some(a=>{
+  if(a.auctionDate!==dateKey || !a.auctionTime) return false;
+
+  const otherStart=new Date(a.auctionDate+"T"+a.auctionTime+":00+02:00").getTime();
+  const otherEnd=otherStart+(2*60*60*1000);
+
+  return slotStart<otherEnd && slotEnd>otherStart;
+});
 
         if(!used){
          const close=new Date(slotDate.getTime()+2*60*60*1000);
@@ -1501,7 +1496,11 @@ const preferredTimes=(state.lots||[])
   .filter(l=>l.auctionId===auction.id && l.preferredAuctionTime)
   .map(l=>l.preferredAuctionTime);
 
-const preferredTime=preferredTimes.length
+const preferredTime=auction.preferredAuctionTime || (
+  preferredTimes.length
+    ? ["15:00","17:00","19:00"].sort((a,b)=>preferredTimes.filter(t=>t===b).length-preferredTimes.filter(t=>t===a).length)[0]
+    : ""
+);
   ? ["15:00","17:00","19:00"].sort((a,b)=>preferredTimes.filter(t=>t===b).length-preferredTimes.filter(t=>t===a).length)[0]
   : "";
 const slot=getNextAuctionSlot(preferredTime);
@@ -1510,6 +1509,7 @@ const slot=getNextAuctionSlot(preferredTime);
   auction.auctionDate=slot.date;
   auction.auctionTime=slot.time;
   auction.auctionCloseTime=slot.closeTime;
+  auction.preferredAuctionTime="";
   auction.status="SCHEDULED";
   save();
   if(state.selectedAuctionId===auction.id){
@@ -1565,15 +1565,23 @@ async function addLot(){
   const plantFile=document.getElementById("lotPlant").files[0];
   const sellerId=document.getElementById("adminSellerSelect").value;
 const seller=(state.sellers||[]).find(s=>s.id===sellerId);
+  if(!seller){
+  document.getElementById("lotMsg").textContent="Please select a seller first.";
+  return;
+}
   if(!auction){
   document.getElementById("lotMsg").textContent="Please select an auction first.";
   return;
 }
-  if(preferredAuctionTime && auction.auctionTime && preferredAuctionTime!==auction.auctionTime){
+  if(preferredAuctionTime && !auction.auctionTime && !auction.preferredAuctionTime){
+  auction.preferredAuctionTime=preferredAuctionTime;
+}
+ 
+  if(preferredAuctionTime && (auction.auctionTime || auction.preferredAuctionTime) && preferredAuctionTime!==(auction.auctionTime || auction.preferredAuctionTime)){
   const matchingAuction=(state.auctions||[]).find(a=>
     a.id!==auction.id &&
     a.auctionDate===auction.auctionDate &&
-    a.auctionTime===preferredAuctionTime
+    (a.auctionTime===preferredAuctionTime || a.preferredAuctionTime===preferredAuctionTime)
   );
 
   if(matchingAuction){
@@ -1582,21 +1590,26 @@ const seller=(state.sellers||[]).find(s=>s.id===sellerId);
     return;
   }
   auction=matchingAuction;
+    if(!auction.auctionTime && !auction.preferredAuctionTime){
+  auction.preferredAuctionTime=preferredAuctionTime;
+}
     if(isAuctionFull(auction)){
   alert("The "+preferredAuctionTime+" auction is already full. Please choose another time.");
   return;
 }
   }else{
-    alert("No auction is available at "+preferredAuctionTime+" on this auction date yet.");
-    return;
-  }
+  alert("The "+preferredAuctionTime+" auction slot is not available yet. Please choose Automatic / next available.");
+  return;
 }
   
   const listingCurrency=auction && auction.currency==="EUR" ? "EUR" : "ZAR";
 const listingFee=listingCurrency==="EUR" ? 5 : 50;
    
 const unpaidSellerInvoice=(state.invoices||[]).find(inv=>inv.sellerId===seller.id && inv.status!=="PAID");
-
+if(unpaidSellerInvoice){
+  document.getElementById("lotMsg").textContent="This seller has an unpaid invoice and cannot list another plant until it is paid.";
+  return;
+}
   if(!seller.bankConfirmed){
   document.getElementById("lotMsg").textContent="Please confirm the seller's bank account before listing a plant.";
   return;
