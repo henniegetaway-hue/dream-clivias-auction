@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dream Clivias Auction</title>
-
-<style>
+<meta name="description" content="Dream Clivias Auction — buy and sell quality Clivia plants through live online auctions in South Africa and internationally.">
+<meta name="keywords" content="Clivia, Clivias, Clivia auction, Clivia plants, Clivia flowers, buy Clivia, sell Clivia, Clivia seeds, rare Clivia, South Africa Clivia, Dream Clivias, online plant auction">
+<meta property="og:title" content="Dream Clivias Auction">
+<meta property="og:description" content="Buy and sell quality Clivia plants through live online auctions.">
+<meta property="og:type" content="website">
+  <meta property="og:url" content="https://henniegetaway-hue.github.io/dream-clivias-auction/">
+  <style>
 :root{
   --bg:#070c08;
   --panel:#101912;
@@ -414,6 +419,9 @@ th,td{
   <div class="status">
     <span class="statusBadge" id="auctionStatus">OPEN</span>
     <div id="auctionTitleTop" style="margin-top:7px">Dream Clivias Live Auction</div>
+    <div id="nextAuctionTop" style="margin-top:6px;font-weight:bold">
+  Next Auction: date to be announced
+</div>
   </div>
 </div>
 
@@ -550,11 +558,28 @@ th,td{
   </div>
 
   <div id="adminArea" class="hidden">
+    <button class="goldBtn" onclick="toggleRulesVisibility()">SHOW / HIDE RULES</button>
     <div class="grid2">
 
       <div class="panel">
   <h2>Create New Auction</h2>
+<label>Auction date</label>
+<input id="newAuctionDate" type="date">
+<label>Auction start time</label>
+<input id="newAuctionTime" type="time">
+        <label>Auction closing time</label>
+<input id="newAuctionCloseTime" type="time">
+ <label>Force / change selected auction date</label>
+<input id="adminAuctionDateOverride" type="date">
+<label>Force / change start time</label>
+<input id="adminAuctionTimeOverride" type="time">
 
+<label>Force / change closing time</label>
+<input id="adminAuctionCloseTimeOverride" type="time">        
+<button class="goldBtn" onclick="forceAuctionDate()">UPDATE AUCTION DATE / TIMES</button>
+    <button class="goldBtn" onclick="extendAuctionDays(1)">ADD 1 DAY</button>
+<button class="goldBtn" onclick="extendAuctionDays(2)">ADD 2 DAYS</button>
+<button class="goldBtn" onclick="extendAuctionDays(3)">ADD 3 DAYS</button>    
   <label>Auction type</label>
   <select id="newAuctionType">
     <option value="Pots" disabled>Pots - Coming later</option>
@@ -632,6 +657,13 @@ th,td{
 <select id="adminSellerSelect"></select>
         <label>Name / Cross</label>
         <input id="lotName" placeholder="e.g. Green Throat × White Stripe">
+        <label>Preferred auction time</label>
+<select id="lotAuctionTime">
+  <option value="">Automatic / next available</option>
+  <option value="15:00">15:00 - 17:00</option>
+  <option value="17:00">17:00 - 19:00</option>
+  <option value="19:00">19:00 - 21:00</option>
+</select>
 
         <div class="formGrid">
           <div>
@@ -726,6 +758,8 @@ th,td{
 
      <p>24. The bidder and seller/owner are responsible for completing the transaction, payment and delivery arrangements between themselves.</p>
     <p>25. Dream Clivias Auction does not guarantee that any plant listed for auction will receive bids or be sold. Sellers are encouraged to actively promote and share their auction plants through Facebook, WhatsApp, social media and any other sharing or advertising options provided by Dream Clivias Auction. These promotional tools are made available to all sellers to help increase exposure, but the responsibility for promoting a listed plant and attracting potential bidders remains with the seller.</p>
+  <h3>Gentleman's Agreement</h3>
+<p>Dream Clivias Auction operates in the spirit of trust, fairness and respect between buyers and sellers. Please honour your bids, payments, sales and commitments, and do not abuse the opportunity or privileges provided by this platform.</p>
   </div>
 </section>
   <section id="pageSeller" class="page hidden">
@@ -829,6 +863,11 @@ let state = {
   const cleaned=String(phone||"").replace(/[\s()-]/g,"");
   return /^\+?[0-9]{9,15}$/.test(cleaned);
 }
+  function warnRegisteredUser(user,reason){
+  console.log("SECURITY WARNING:",reason,user);
+
+  // Later connect to email + WhatsApp notifications.
+}
 function save(){
   try{
     localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
@@ -864,13 +903,50 @@ function showPage(page){
   if(page==="admin") renderAdminLots();
   if(page==="invoices") renderInvoices();
 }
+function toggleRulesVisibility(){
+  state.settings.rulesVisible = state.settings.rulesVisible===false ? true : false;
+  save();
 
+  const btn=document.getElementById("navRules");
+  if(btn){
+    btn.style.display=state.settings.rulesVisible===false ? "none" : "";
+  }
+
+  alert(state.settings.rulesVisible===false ? "Rules are now hidden." : "Rules are now visible.");
+}
 function updateHeader(){
+  document.getElementById("navRules").style.display=state.settings.rulesVisible===false ? "none" : "";
   document.getElementById("auctionTitleTop").textContent=state.settings.auctionName;
   document.getElementById("liveTitle").textContent=state.settings.auctionName;
   document.getElementById("liveDefaultIncrement").textContent=state.settings.increment;
-  document.getElementById("auctionStatus").textContent=state.settings.open?"OPEN":"CLOSED";
+  const selectedAuction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+let headerStatus="CLOSED";
+
+if(state.settings.open && selectedAuction && selectedAuction.auctionDate && selectedAuction.auctionTime){
+  const startTime=new Date(selectedAuction.auctionDate+"T"+selectedAuction.auctionTime+":00+02:00").getTime();
+  const closeTime=selectedAuction.auctionCloseTime
+    ? new Date(selectedAuction.auctionDate+"T"+selectedAuction.auctionCloseTime+":00+02:00").getTime()
+    : 0;
+
+  if(Date.now()<startTime) headerStatus="UPCOMING";
+  else if(!closeTime || Date.now()<=closeTime) headerStatus="OPEN";
+  else if((state.lots||[]).some(lot=>
+  lot.auctionId===selectedAuction.id &&
+  lot.extendedCloseUntil &&
+  new Date(lot.extendedCloseUntil).getTime()>Date.now()
+)) headerStatus="HOT BIDDING";
 }
+
+document.getElementById("auctionStatus").textContent=headerStatus;
+  if(headerStatus==="UPCOMING" || headerStatus==="OPEN" || headerStatus==="HOT BIDDING"){
+  setTimeout(updateHeader,1000);
+}
+}
+  const now=Date.now();
+const nextAuction=(state.auctions||[]).filter(a=>a.auctionDate && a.auctionTime && new Date(a.auctionDate+"T"+a.auctionTime+":00+02:00").getTime()>now).sort((a,b)=>new Date(a.auctionDate+"T"+a.auctionTime+":00+02:00")-new Date(b.auctionDate+"T"+b.auctionTime+":00+02:00"))[0];
+document.getElementById("nextAuctionTop").textContent=
+  nextAuction ? "Next Auction: "+new Date(nextAuction.auctionDate+"T00:00:00").toLocaleDateString("en-ZA",{day:"numeric",month:"long",year:"numeric"})+" at "+nextAuction.auctionTime
+  : "Next Auction: date to be announced";
 
 function registerSeller(){
   const name=document.getElementById("sellerName").value.trim();
@@ -887,7 +963,38 @@ if(!name || !phone || !email || !country || !accountNumber || !rulesAccepted){
     alert("Please complete all required seller details, including your bank account number, and accept the Rules & Terms.");
     return;
   }
+const duplicateBankUser=[
+  ...(state.bidders||[]),
+  ...(state.sellers||[])
+].find(u=>
+  String(u.accountNumber||"").replace(/\s/g,"")===String(accountNumber||"").replace(/\s/g,"") &&
+  (
+    String(u.name||"").trim().toLowerCase()!==name.trim().toLowerCase() ||
+    String(u.phone||"").replace(/\s/g,"")!==phone.replace(/\s/g,"")
+  )
+);
 
+if(duplicateBankUser){
+  alert("REGISTRATION BLOCKED: This bank account is already registered to different personal details.");
+  return;
+}
+  const duplicatePhoneUser=[
+  warnRegisteredUser(duplicateBankUser,"Attempt to register using your bank account number.");  
+  ...(state.bidders||[]),
+  ...(state.sellers||[])
+].find(u=>
+  String(u.phone||"").replace(/\s/g,"")===phone.replace(/\s/g,"") &&
+  (
+    String(u.name||"").trim().toLowerCase()!==name.trim().toLowerCase() ||
+    String(u.accountNumber||"").replace(/\s/g,"")!==String(accountNumber||"").replace(/\s/g,"")
+  )
+);
+
+if(duplicatePhoneUser){
+  alert("REGISTRATION BLOCKED: This phone / WhatsApp number is already registered to different personal details.");
+  return;
+}
+  const seller={
   const seller={
     id:"S"+Date.now(),
     name,
@@ -979,7 +1086,38 @@ if(!name || !phone || !address || !suburb || !postal || !country || !accountNumb
   document.getElementById("regMsg").textContent="Please complete all required buyer details, including full address, bank account number and default number.";
   return;
 }
+const duplicateBankUser=[
+  ...(state.bidders||[]),
+  ...(state.sellers||[])
+].find(u=>
+  String(u.accountNumber||"").replace(/\s/g,"")===String(accountNumber||"").replace(/\s/g,"") &&
+  (
+    String(u.name||"").trim().toLowerCase()!==name.trim().toLowerCase() ||
+    String(u.phone||"").replace(/\s/g,"")!==phone.replace(/\s/g,"")
+  )
+);
 
+if(duplicateBankUser){
+  document.getElementById("regMsg").textContent=
+    "REGISTRATION BLOCKED: This bank account is already registered to different personal details.";
+  return;
+}
+    const duplicatePhoneUser=[
+  ...(state.bidders||[]),
+  ...(state.sellers||[])
+].find(u=>
+  String(u.phone||"").replace(/\s/g,"")===phone.replace(/\s/g,"") &&
+  (
+    String(u.name||"").trim().toLowerCase()!==name.trim().toLowerCase() ||
+    String(u.accountNumber||"").replace(/\s/g,"")!==String(accountNumber||"").replace(/\s/g,"")
+  )
+);
+
+if(duplicatePhoneUser){
+  document.getElementById("regMsg").textContent=
+    "REGISTRATION BLOCKED: This phone / WhatsApp number is already registered to different personal details.";
+  return;
+}
   const bidder={
     id:"B"+Date.now(),
     name,
@@ -1115,8 +1253,10 @@ function openAdmin(){
   refreshLotCategorySelect(); 
   save();refreshAdminAuctionSelect();
 
+  if(state.selectedAuctionId===auction.id){
   document.getElementById("selectedAuctionNotice").textContent=
-  "Selected auction: " + auction.name + " (" + auction.type + ") - " + auction.status + " - " + auction.currency;
+  "Selected auction: "+auction.name+" ("+auction.type+") | "+auction.auctionDate+" | "+auction.auctionTime+" - "+auction.auctionCloseTime;
+}
    if(auction.auctionDate && auction.auctionTime){
   document.getElementById("selectedAuctionNotice").textContent +=
     " | Auction: " + auction.auctionDate + " at " + auction.auctionTime;
@@ -1157,6 +1297,58 @@ if(auction && auction.currency==="ZAR") incrementSelect.innerHTML='<option value
     select.appendChild(option);
   });
 }
+  
+    function extendAuctionDays(days){
+  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+
+  if(!auction || !auction.auctionDate){
+    alert("Please select an auction with a date first.");
+    return;
+  }
+
+  const d=new Date(auction.auctionDate+"T00:00:00");
+  d.setDate(d.getDate()+days);
+  auction.auctionDate=d.toISOString().slice(0,10);
+
+  save();
+  updateHeader();
+  alert("Auction extended by "+days+" day(s).");
+}
+  function forceAuctionDate(){
+  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+  const newDate=document.getElementById("adminAuctionDateOverride").value;
+    const newStartTime=document.getElementById("adminAuctionTimeOverride").value;
+const newCloseTime=document.getElementById("adminAuctionCloseTimeOverride").value;
+
+  if(!auction){
+    alert("Please select an auction first.");
+    return;
+  }
+
+  if(!newDate){
+    alert("Please select a new auction date.");
+    return;
+  }
+const finalStartTime=newStartTime || auction.auctionTime;
+const finalCloseTime=newCloseTime || auction.auctionCloseTime;
+(state.lots||[]).forEach(lot=>{
+  if(lot.auctionId===auction.id) lot.extendedCloseUntil=null;
+});
+if(finalStartTime && finalCloseTime && finalCloseTime<=finalStartTime){
+  alert("Auction closing time must be later than the start time.");
+  return;
+}
+  auction.auctionDate=newDate;
+    if(newStartTime) auction.auctionTime=newStartTime;
+if(newCloseTime) auction.auctionCloseTime=newCloseTime;
+  save();
+  updateHeader();
+  renderLots();  
+  refreshAdminAuctionSelect();  
+  document.getElementById("selectedAuctionNotice").textContent=
+"Selected auction: "+auction.name+" ("+auction.type+") | "+auction.auctionDate+" | "+auction.auctionTime+" - "+auction.auctionCloseTime;  
+  alert("Auction date and times updated.");
+}
 function createAuction(){
   const type=document.getElementById("newAuctionType").value;
   if(type!=="Clivia"){
@@ -1165,16 +1357,33 @@ function createAuction(){
 }
   const currency=document.getElementById("newAuctionCurrency").value;
   const name=document.getElementById("newAuctionName").value.trim();
+  const auctionDate=document.getElementById("newAuctionDate").value;
+const auctionTime=document.getElementById("newAuctionTime").value;
+const auctionCloseTime=document.getElementById("newAuctionCloseTime").value;
   if(!name){
     alert("Please enter an auction name.");
     return;
   }
-
+if((state.auctions||[]).length===0 && !(auctionDate && auctionTime && auctionCloseTime)){
+  alert("Please set the date, start time and closing time for the first auction.");
+  return;
+}
+if((auctionDate || auctionTime || auctionCloseTime) && !(auctionDate && auctionTime && auctionCloseTime)){
+  alert("Enter the auction date, start time and closing time together, or leave all three blank for automatic scheduling.");
+  return;
+}
+  if(auctionTime && auctionCloseTime && auctionCloseTime<=auctionTime){
+  alert("Auction closing time must be later than the start time.");
+  return;
+}
   const auction={
     id:"A"+Date.now(),
     type:type,
     currency:currency,
     name:name,
+    auctionDate:auctionDate,
+    auctionTime:auctionTime,
+auctionCloseTime:auctionCloseTime,
     status:"FILLING",
     createdDate:new Date().toISOString(),
     lots:[],
@@ -1192,10 +1401,16 @@ categoryCapacity:12,
   state.auctions.push(auction);
   state.selectedAuctionId=auction.id;
   save();
+  updateHeader();
+  refreshAdminAuctionSelect();
+  document.getElementById("newAuctionDate").value="";
+document.getElementById("newAuctionTime").value="";
+document.getElementById("newAuctionCloseTime").value="";
   refreshAdminAuctionSelect();
   refreshLotCategorySelect();
   document.getElementById("selectedAuctionNotice").textContent=
-  "Selected auction: " + name + " (" + type + ")";
+"Selected auction: " + name + " (" + type + ")" +
+(auctionDate ? " | " + auctionDate + " | " + auctionTime + " - " + auctionCloseTime : " | Automatic scheduling");
 
   alert("Auction created: " + name);
 }
@@ -1218,6 +1433,7 @@ function isAuctionFull(auction){
       auction.fullDate=new Date().toISOString();
     }
     save();
+    updateHeader();
   }
 }
 function isAuctionHalfFull(auction){
@@ -1228,8 +1444,11 @@ function isAuctionHalfFull(auction){
 
   return currentLots >= Math.ceil(totalCapacity / 2);
 }  
-  function getNextAuctionSlot(){
-  const slots=["16:00","17:30","19:00"];
+  function getNextAuctionSlot(preferredTime){
+  const normalSlots=["15:00","17:00","19:00"];
+const slots=preferredTime && normalSlots.includes(preferredTime)
+  ? [preferredTime,...normalSlots.filter(t=>t!==preferredTime)]
+  : normalSlots;
   const existing=(state.auctions||[]).filter(a=>a.auctionDate && a.auctionTime);
 
   let date=new Date();
@@ -1254,7 +1473,9 @@ if(slotDate<=new Date()) continue;
         );
 
         if(!used){
-          return {date:dateKey,time:time};
+         const close=new Date(slotDate.getTime()+2*60*60*1000);
+const closeTime=String(close.getHours()).padStart(2,"0")+":"+String(close.getMinutes()).padStart(2,"0");
+return {date:dateKey,time:time,closeTime:closeTime};
         }
       }
     }
@@ -1269,19 +1490,33 @@ if(slotDate<=new Date()) continue;
     auction.halfFullDate=new Date().toISOString();
     auction.status="SCHEDULING";
     save();
+    updateHeader();
   }
 }
 function scheduleAuctionAtHalfFull(auction){
   if(!isAuctionHalfFull(auction)) return;
-  if(auction.auctionDate && auction.auctionTime) return;
+  if(auction.auctionDate || auction.auctionTime || auction.auctionCloseTime) return;
 
-  const slot=getNextAuctionSlot();
+const preferredTimes=(state.lots||[])
+  .filter(l=>l.auctionId===auction.id && l.preferredAuctionTime)
+  .map(l=>l.preferredAuctionTime);
+
+const preferredTime=preferredTimes.length
+  ? ["15:00","17:00","19:00"].sort((a,b)=>preferredTimes.filter(t=>t===b).length-preferredTimes.filter(t=>t===a).length)[0]
+  : "";
+const slot=getNextAuctionSlot(preferredTime);
   if(!slot) return;
 
   auction.auctionDate=slot.date;
   auction.auctionTime=slot.time;
+  auction.auctionCloseTime=slot.closeTime;
   auction.status="SCHEDULED";
   save();
+  if(state.selectedAuctionId===auction.id){
+  document.getElementById("selectedAuctionNotice").textContent=
+  "Selected auction: "+auction.name+" ("+auction.type+") | "+auction.auctionDate+" | "+auction.auctionTime+" - "+auction.auctionCloseTime;
+}
+  updateHeader();
 }  
 function fillSettings(){
   document.getElementById("setAuctionName").value=state.settings.auctionName;
@@ -1323,24 +1558,49 @@ function fileToDataURL(file){
 
 async function addLot(){
   const name=document.getElementById("lotName").value.trim();
+  const preferredAuctionTime=document.getElementById("lotAuctionTime").value;
   const category=document.getElementById("lotCategory").value;
   const start=Number(document.getElementById("lotStart").value);
   const flowerFile=document.getElementById("lotFlower").files[0];
   const plantFile=document.getElementById("lotPlant").files[0];
-  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
   const sellerId=document.getElementById("adminSellerSelect").value;
-  const listingCurrency=auction && auction.currency==="EUR" ? "EUR" : "ZAR";
-const listingFee=listingCurrency==="EUR" ? 5 : 50;
 const seller=(state.sellers||[]).find(s=>s.id===sellerId);
-  if(!seller){
-  document.getElementById("lotMsg").textContent="Please select a seller first.";
-  return;
-}
-if(!auction){
+  if(!auction){
   document.getElementById("lotMsg").textContent="Please select an auction first.";
   return;
 }
+  if(preferredAuctionTime && auction.auctionTime && preferredAuctionTime!==auction.auctionTime){
+  const matchingAuction=(state.auctions||[]).find(a=>
+    a.id!==auction.id &&
+    a.auctionDate===auction.auctionDate &&
+    a.auctionTime===preferredAuctionTime
+  );
 
+  if(matchingAuction){
+  if(matchingAuction.status==="FULL"){
+    alert("The "+preferredAuctionTime+" auction is already full. Please choose another time.");
+    return;
+  }
+  auction=matchingAuction;
+    if(isAuctionFull(auction)){
+  alert("The "+preferredAuctionTime+" auction is already full. Please choose another time.");
+  return;
+}
+  }else{
+    alert("No auction is available at "+preferredAuctionTime+" on this auction date yet.");
+    return;
+  }
+}
+  
+  const listingCurrency=auction && auction.currency==="EUR" ? "EUR" : "ZAR";
+const listingFee=listingCurrency==="EUR" ? 5 : 50;
+   
+const unpaidSellerInvoice=(state.invoices||[]).find(inv=>inv.sellerId===seller.id && inv.status!=="PAID");
+
+  if(!seller.bankConfirmed){
+  document.getElementById("lotMsg").textContent="Please confirm the seller's bank account before listing a plant.";
+  return;
+}
  if(!name || !category || !start || !flowerFile){
     document.getElementById("lotMsg").textContent="Please enter name, category, start bid and flower photo.";
     return;
@@ -1354,7 +1614,7 @@ if(!auction){
 
   state.lots.push({
     id:"L"+Date.now(),
-    auctionId:state.selectedAuctionId,
+    auctionId:auction.id,
     sellerId:sellerId,
     listingFee:listingFee,
 listingCurrency:listingCurrency,
@@ -1367,6 +1627,7 @@ listingCurrency:listingCurrency,
     increment:auction.currency==="EUR" ? 5 : Number(document.getElementById("lotIncrement").value)||50,
     flower,
     plant,
+    preferredAuctionTime:preferredAuctionTime,
     bids:[],
   });
   
@@ -1385,6 +1646,7 @@ scheduleAuctionAtHalfFull(auction);
 
   document.getElementById("lotFlower").value="";
   document.getElementById("lotPlant").value="";
+  document.getElementById("lotAuctionTime").value="";
   document.getElementById("lotMsg").textContent=
   "Lot added. Listing fee: " +
   (listingCurrency==="ZAR" ? "R"+listingFee : "€"+listingFee);
@@ -1469,9 +1731,11 @@ box.innerHTML=auctionLots.map((lot,i)=>{
     const high=currentBid(lot);
     const next=nextBid(lot);
     const highest=(lot.bids||[]).slice().sort((a,b)=>b.amount-a.amount)[0];
+  const hotBidding=lot.extendedCloseUntil && new Date(lot.extendedCloseUntil).getTime()>Date.now();
 
     return `
     <div class="lotCard" id="lot-${lot.id}">
+    ${hotBidding ? '<div class="notice">🔥 HOT BIDDING — this plant stays open until 1 minute after the latest bid.</div>' : ''}
       <div class="lotTop">
         <span>LOT-${String(i+1).padStart(3,"0")}</span>
         <span>Min +${currencySymbol}${auction && auction.currency==="EUR" ? 5 : Number(lot.increment||state.settings.increment||50)}</span>
@@ -1483,6 +1747,7 @@ box.innerHTML=auctionLots.map((lot,i)=>{
 
       <div class="lotBody">
         <div class="lotName">${escapeHtml(lot.name)}</div>
+        ${lot.preferredAuctionTime ? '<div class="small">Preferred auction time: '+lot.preferredAuctionTime+'</div>' : ''}
 <div class="price">${currencySymbol}${high} + PPC</div>
 <div class="small">Share this plant:</div>
 <div class="shareRow">
@@ -1522,7 +1787,29 @@ if(window.location.hash){
     sharedLot.scrollIntoView({behavior:"smooth",block:"start"});
   }
 }
+   const activeHotBidding=auctionLots.some(lot=>
+  lot.extendedCloseUntil &&
+  new Date(lot.extendedCloseUntil).getTime()>Date.now()
+);
+
+if(activeHotBidding){
+  setTimeout(renderLots,1000);
+  if(!activeHotBidding && state.settings.open){
+  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+  if(auction && auction.auctionDate && auction.auctionCloseTime){
+    const normalClose=new Date(auction.auctionDate+"T"+auction.auctionCloseTime+":00+02:00").getTime();
+    if(Date.now()>normalClose){
+      state.settings.open=false;
+      createInvoices();
+      save();
+      updateHeader();
+    }
+  }
 }
+}
+}
+}
+ 
 
 function placeBid(lotId){
   const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
@@ -1531,6 +1818,25 @@ const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
     alert("The auction is closed.");
     return;
   }
+  const lot=(state.lots||[]).find(l=>l.id===lotId);
+if(auction && auction.auctionDate && auction.auctionTime){
+  const normalStart=new Date(auction.auctionDate+" | Starts: "+nextAuction.auctionTime+(nextAuction.auctionCloseTime ? " | Closes: "+nextAuction.auctionCloseTime : "")
+
+  if(Date.now()<normalStart){
+    alert("This auction has not started yet.");
+    return;
+  }
+}
+if(auction && auction.auctionDate && auction.auctionCloseTime && lot){
+  const normalClose=new Date(auction.auctionDate+"T"+auction.auctionCloseTime+":00+02:00").getTime();
+  const extendedClose=lot.extendedCloseUntil ? new Date(lot.extendedCloseUntil).getTime() : 0;
+  const actualClose=Math.max(normalClose,extendedClose);
+
+  if(Date.now()>actualClose){
+    alert("Bidding on this plant is closed.");
+    return;
+  }
+}
   const bidder=state.bidders.find(b=>b.id===state.selectedBidderId);
   if(!bidder){
   alert("Please register or select a bidder first.");
@@ -1553,7 +1859,6 @@ if(unpaidInvoice){
 }
    
 
-  const lot=state.lots.find(l=>l.id===lotId);
   const amount=Number(document.getElementById("bid_"+lotId).value);
  const required=nextBid(lot);
   const bidStep=auction && auction.currency==="EUR" ? 5 : 50;
@@ -1577,13 +1882,13 @@ const secondWarningLevel=maxBidCapacity-(auction.currency==="EUR" ? 60 : 1000);
   const securityProofPending=
   bidder.securityProofStatus==="PENDING_AI" &&
   bidder.securityProofCurrency===(auction && auction.currency==="EUR" ? "EUR" : "ZAR");
-  if(!securityProofPending && amount>=firstWarningLevel && amount<secondWarningLevel){
+  totalExposureAfterBid>=firstWarningLevel && totalExposureAfterBid<secondWarningLevel
   alert("SECURITY WARNING: You are approaching your "+currencySymbol+
   maxBidCapacity.toLocaleString()+" bidding limit. Pay the next "+
   currencySymbol+securityFeeAmount+" security fee to unlock the next "+
   currencySymbol+securityBracketSize.toLocaleString()+" bidding bracket.");
     }
-if(!securityProofPending && amount>=secondWarningLevel && amount<=maxBidCapacity){
+if(!securityProofPending && totalExposureAfterBid>=secondWarningLevel && totalExposureAfterBid<=maxBidCapacity){
   alert("URGENT SECURITY WARNING: You are very close to your "+
   currencySymbol+maxBidCapacity.toLocaleString()+" bidding limit. Pay the "+
   currencySymbol+securityFeeAmount+" security fee now to avoid bidding being interrupted.");
@@ -1591,7 +1896,7 @@ if(!securityProofPending && amount>=secondWarningLevel && amount<=maxBidCapacity
 if(securityFeeNeeded){
   alert(securityProofPending
   ? "BIDDING PAUSED: Your "+currencySymbol+securityFeeAmount+" payment proof is waiting for verification. Your next "+currencySymbol+securityBracketSize.toLocaleString()+" bidding bracket will unlock after confirmation."
-  : "BIDDING PAUSED: Your "+currencySymbol+maxBidCapacity.toLocaleString()+" bidding limit has been reached. Pay the "+currencySymbol+securityFeeAmount+" security fee and upload proof of payment to unlock the next "+currencySymbol+securityBracketSize.toLocaleString()+" bidding bracket.");
+  : "BIDDING PAUSED: Your "+currencySymbol+maxBidCapacity.toLocaleString()+" total bidding capacity has been reached. Pay the "+currencySymbol+securityFeeAmount+" security fee and upload proof of payment to unlock the next "+currencySymbol+securityBracketSize.toLocaleString()+" bidding bracket.");
  return;
 }
   
@@ -1612,7 +1917,11 @@ if(amount<required){
     amount,
     time:new Date().toISOString()
   });
-
+lot.lastBidTime=new Date().toISOString();
+  const closeTime=new Date(auction.auctionDate+"T"+auction.auctionCloseTime+":00+02:00");
+if(Date.now()>=closeTime.getTime()-60000){
+  lot.extendedCloseUntil=new Date(Date.now()+60000).toISOString();
+}
   save();
   renderLots();
 }
@@ -1638,15 +1947,27 @@ function setAuctionOpen(open){
   state.settings.open=open;
 
   if(!open){
-    createInvoices();
+    const hotLot=(state.lots||[]).some(lot=>
+  lot.auctionId===state.selectedAuctionId &&
+  lot.extendedCloseUntil &&
+  new Date(lot.extendedCloseUntil).getTime()>Date.now()
+);
+    if(!hotLot){
+  createInvoices();
+      if(hotLot){
+  state.settings.open=true;
+}
+}
   }
 
   save();
   updateHeader();
-  alert(open ? "Auction opened." : "Auction closed and invoices created.");
+  alert(open ? "Auction opened." : (state.settings.open ? "Normal auction closed. HOT BIDDING is still continuing." : "Auction closed and invoices created."));
 }
 
 function createInvoices(){
+  const alreadyCreated=(state.invoices||[]).some(inv=>inv.auctionId===state.selectedAuctionId);
+if(alreadyCreated) return;
   const winners={};
 
   state.lots.filter(lot=>lot.auctionId===state.selectedAuctionId).forEach(lot=>{
@@ -1670,6 +1991,7 @@ function createInvoices(){
         bidderSuburb:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).suburb||"",
         bidderCountry:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).country||"",
         bidderPostalCode:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).postalCode||"",
+        auctionId:state.selectedAuctionId,
         lots:[],
      total:0,
 status:"UNPAID"
