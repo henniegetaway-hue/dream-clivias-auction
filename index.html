@@ -2117,7 +2117,10 @@ saleAmount:Number(sale.amount||0),
     amount:commissionAmount,
     currency:invoice.currency||"ZAR",
     status:"UNPAID",
-    createdAt:new Date().toISOString()
+    createdAt:new Date().toISOString(),
+nextReminderAt:new Date(Date.now()+24*60*60*1000).toISOString(),
+reminderCount:0,
+maxReminders:3
   });
 }
   save();
@@ -2149,7 +2152,26 @@ if(!state.selectedBidderId || invoice.bidderId!==state.selectedBidderId){
   renderInvoices();
 }
   function markSellerCommissionPaid(invoiceId){
-  if(!document.getElementById("adminArea") || document.getElementById("adminArea").classList.contains("hidden")){
+    function checkCommissionReminders(){
+  const now=Date.now();
+
+  (state.invoices||[]).forEach(inv=>{
+    if(inv.type!=="SELLER_COMMISSION" || inv.status==="PAID") return;
+    if(Number(inv.reminderCount||0)>=Number(inv.maxReminders||3)) return;
+    if(!inv.nextReminderAt || now<new Date(inv.nextReminderAt).getTime()) return;
+
+    inv.reminderCount=Number(inv.reminderCount||0)+1;
+    inv.lastReminderAt=new Date().toISOString();
+inv.reminderDue=true;
+    inv.nextReminderAt=inv.reminderCount<3
+      ? new Date(now+24*60*60*1000).toISOString()
+      : null;
+  });
+
+  save();
+}
+  function markSellerCommissionPaid(invoiceId){
+    if(!document.getElementById("adminArea") || document.getElementById("adminArea").classList.contains("hidden")){
   alert("Only Admin can mark a seller commission invoice as paid.");
   return;
 }
@@ -2159,13 +2181,14 @@ if(!state.selectedBidderId || invoice.bidderId!==state.selectedBidderId){
 
   invoice.status="PAID";
   invoice.paidAt=new Date().toISOString();
-
+invoice.reminderDue=false;
+invoice.nextReminderAt=null;
   save();
   renderInvoices();
 }
 function renderInvoices(){
   const box=document.getElementById("invoiceList");
-
+checkCommissionReminders();
   if(!state.invoices || state.invoices.length===0){
     box.innerHTML="No invoices created yet.";
     return;
@@ -2180,6 +2203,9 @@ function renderInvoices(){
  '<div class="small">Commission rule: 10% of winning bid less R50 listing fee, only when sale is above R2,000</div>'+
       '<div><b>Commission due: R'+Number(inv.amount||0).toLocaleString()+'</b></div>'+
 '<div>Status: <b>'+escapeHtml(inv.status||"UNPAID")+'</b></div>'
+ +(inv.reminderDue
+  ? '<div class="notice">⚠️ PAYMENT REMINDER '+Number(inv.reminderCount||0)+' OF 3 DUE</div>'
+  : '')     
  +(inv.status!=="PAID" && document.getElementById("adminArea") && !document.getElementById("adminArea").classList.contains("hidden")
   ? '<button onclick="markSellerCommissionPaid(\''+inv.id+'\')">MARK COMMISSION PAID</button>'
   : (inv.status==="PAID" ? '<div class="small">Commission paid ✅</div>' : ''))
