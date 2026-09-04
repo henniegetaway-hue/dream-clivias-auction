@@ -1871,6 +1871,8 @@ const displayLots=[
 
     return `
     <div class="lotCard" id="lot-${lot.id}">
+    <img src="faded pic.png" alt="" style="display:none;">
+    
     ${hotBidding ? '<div class="notice">🔥 HOT BIDDING — this plant stays open until 1 minute after the latest bid.</div>' : ''}
       <div class="lotTop">
         <span>LOT-${String(i+1).padStart(3,"0")}</span>
