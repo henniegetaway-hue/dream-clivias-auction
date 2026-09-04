@@ -2404,6 +2404,13 @@ function renderSiteErrorLog(){
     </div>
   `).join("");
 }
+ function clearSiteErrorLog(){
+  if(!confirm("Clear all site errors?")) return;
+
+  state.siteErrors=[];
+  save();
+  renderSiteErrorLog();
+}   
 function deleteLot(id){
   state.lots=state.lots.filter(lot=>lot.id!==id);
   (state.auctions||[]).forEach(auction=>{
