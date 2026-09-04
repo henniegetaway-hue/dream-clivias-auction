@@ -1011,7 +1011,7 @@ if(duplicateBankUser){
   return;
 }
   const duplicatePhoneUser=[
-  warnRegisteredUser(duplicateBankUser,"Attempt to register using your bank account number.");  
+ 
   ...(state.bidders||[]),
   ...(state.sellers||[])
 ].find(u=>
