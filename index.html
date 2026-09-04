@@ -1789,14 +1789,81 @@ const auctionLots=state.lots.filter(lot=>
   lot.auctionId===state.selectedAuctionId
 );
  if(auctionLots.length===0){
-    box.innerHTML='<div class="panel">No auction lots have been added yet.</div>';
-    return;
-  }
+  box.innerHTML=Array.from({length:12},(_,i)=>`
+    <div class="lotCard sampleLot" style="opacity:.38;pointer-events:none;">
+      <div class="lotTop">
+        <span>Lot ${String(i+1).padStart(3,"0")}</span>
+        <span style="color:#9cff57;font-weight:bold;">LOADING FOR AUCTION</span>
+      </div>
+
+      <div class="flowerWrap">
+        <div style="
+          height:220px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:rgba(0,0,0,.25);
+          font-size:22px;
+          font-weight:bold;
+          color:#fff;
+        ">
+          SAMPLE FLOWER
+        </div>
+      </div>
+
+      <div class="lotBody">
+        <div class="lotName">Sample Clivia</div>
+        <div class="small">Waiting for seller listing...</div>
+      </div>
+    </div>
+  `).join("");
+  return;
+}
 
   
 
-box.innerHTML=auctionLots.map((lot,i)=>{
+
+  const sampleCount=Math.max(0,12-auctionLots.length);
+
+const displayLots=[
+  ...auctionLots,
+  ...Array.from({length:sampleCount},(_,i)=>({
+    isSample:true,
+    sampleNumber:auctionLots.length+i+1
+  }))
+];
+  
+  box.innerHTML=displayLots.map((lot,i)=>{
   const seller=(state.sellers||[]).find(s=>s.id===lot.sellerId);
+    if(lot.isSample){
+  return `
+    <div class="lotCard sampleLot" style="opacity:.38;pointer-events:none;">
+      <div class="lotTop">
+        <span>Lot ${String(lot.sampleNumber).padStart(3,"0")}</span>
+        <span style="color:#9cff57;font-weight:bold;">
+          LOADING FOR AUCTION
+        </span>
+      </div>
+
+      <div style="
+        height:220px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:rgba(0,0,0,.30);
+        font-size:22px;
+        font-weight:bold;
+      ">
+        SAMPLE FLOWER
+      </div>
+
+      <div class="lotBody">
+        <b>Sample Clivia</b><br>
+        <span class="small">Waiting for seller listing...</span>
+      </div>
+    </div>
+  `;
+}
     const high=currentBid(lot);
     const next=nextBid(lot);
     const highest=(lot.bids||[]).slice().sort((a,b)=>b.amount-a.amount)[0];
