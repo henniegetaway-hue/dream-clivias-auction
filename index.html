@@ -2388,7 +2388,7 @@ ${x.paymentStatus==="ADMIN_REVIEW"
   ? '<div class="notice">⚠️ ADMIN REVIEW REQUIRED — 28-hour seller confirmation period expired.</div>'
   : ''
 }
-}
+
       ${x.sellerPaidConfirmed
   ? '<div class="small">✅ SALE COMPLETED — Seller confirmed payment received</div>'
  : (document.getElementById("sellerSelect")?.value===x.sellerId && x.paymentStatus!=="ADMIN_REVIEW"
