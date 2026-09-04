@@ -1309,7 +1309,7 @@ function refreshLotCategorySelect(){
   const select=document.getElementById("lotCategory");
   if(!select) return;
 
-  const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
+  
   const incrementSelect=document.getElementById("lotIncrement");
 if(auction && auction.currency==="EUR") incrementSelect.innerHTML='<option value="5">€5</option>';
 if(auction && auction.currency==="ZAR") incrementSelect.innerHTML='<option value="50">R50</option><option value="100">R100</option>';
@@ -2309,7 +2309,6 @@ if(!state.selectedBidderId || invoice.bidderId!==state.selectedBidderId){
   save();
   renderInvoices();
 }
-  function markSellerCommissionPaid(invoiceId){
     function checkCommissionReminders(){
   const now=Date.now();
 
