@@ -1223,10 +1223,10 @@ document.getElementById("bidderCapacityNotice").textContent=
       " | "+(bidder.securityProofCurrency==="EUR" ? "€" : "R")+Number(bidder.securityProofAmount||0)+" payment proof: WAITING FOR VERIFICATION";
 }
   notice.textContent =
-    "Selected bidder: " + bidder.name +
-    (
-      ? " — ✅ BANK ACCOUNT CONFIRMED — BIDDING ENABLED"
-      : " — 🔴 BANK ACCOUNT NOT CONFIRMED — BIDDING BLOCKED");
+  "Selected bidder: " + bidder.name +
+  (bidder.bankConfirmed
+    ? " - ✅ BANK ACCOUNT CONFIRMED - BIDDING ENABLED"
+    : " - 🔴 BANK ACCOUNT NOT CONFIRMED - BIDDING BLOCKED");
 }
 function confirmSelectedBidderBank(){
   const bidder=state.bidders.find(b=>b.id===state.selectedBidderId);
