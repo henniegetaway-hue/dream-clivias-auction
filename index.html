@@ -714,6 +714,12 @@ th,td{
   <h2>Current Auction Lots</h2>
   <div id="adminLots">No lots yet.</div>
 </div>
+    
+    <div class="panel">
+  <h2>🚨 SITE ERROR LOG</h2>
+      <button class="goldBtn" onclick="clearSiteErrorLog()">CLEAR ERROR LOG</button>
+  <div id="siteErrorLog">No site errors recorded.</div>
+</div>
   </div>
 </section>
 
@@ -1129,6 +1135,11 @@ country:document.getElementById("regCountry").value.trim(),
 accountNumber:document.getElementById("regAccountNumber").value.trim(),    
 defaultNumber:document.getElementById("regDefaultNumber").value.trim(),
     bankConfirmed:false,
+    approvedPaymentAccounts:[
+  document.getElementById("regAccountNumber").value.trim()
+],
+paymentHold:false,
+paymentHoldReason:"",
     rulesAccepted:true,
 rulesAcceptedDate:new Date().toISOString(),
     notifyNextAuction:document.getElementById("regNotifyNextAuction").value,
@@ -1194,7 +1205,7 @@ document.getElementById("bidderCapacityNotice").textContent=
 }
   notice.textContent =
     "Selected bidder: " + bidder.name +
-    (bidder.bankConfirmed
+    (
       ? " — ✅ BANK ACCOUNT CONFIRMED — BIDDING ENABLED"
       : " — 🔴 BANK ACCOUNT NOT CONFIRMED — BIDDING BLOCKED");
 }
@@ -1229,6 +1240,7 @@ function openAdmin(){
     document.getElementById("adminArea").classList.remove("hidden");
     fillSettings();
     renderAdminLots();
+    renderSiteErrorLog();
     refreshLotCategorySelect();
     refreshSellerSelect();
   }else{
@@ -1903,6 +1915,10 @@ if(auction && auction.auctionDate && auction.auctionCloseTime && lot){
   showPage("register");
   return;
 }
+  if(bidder.paymentHold){
+  alert("Your account is ON HOLD because a payment came from an unregistered bank account. No further bidding is allowed until the seller confirms the payment or Admin clears the hold.");
+  return;
+}
   const unpaidInvoice=(state.invoices||[]).find(inv=>
   inv.bidderId===bidder.id &&
   inv.status!=="PAID"
@@ -2068,6 +2084,8 @@ status:"UNPAID"
       lot:lot.name,
       sellerId:lot.sellerId,
       amount:winningBid.amount
+        paymentAccountNumber:"",
+paymentStatus:"UNPAID",
       sellerPaidConfirmed:false
     happyBuyerConfirmed:false
     });
@@ -2079,7 +2097,36 @@ status:"UNPAID"
   save();
   renderInvoices();
 }
-function confirmSellerPayment(invoiceId,lotIndex){
+
+  function recordBuyerPayment(invoiceId,lotIndex,paymentAccountNumber){
+  const invoice=(state.invoices||[]).find(inv=>inv.id===invoiceId);
+  if(!invoice || !invoice.lots || !invoice.lots[lotIndex]) return;
+
+  const sale=invoice.lots[lotIndex];
+  const bidder=(state.bidders||[]).find(b=>b.id===invoice.bidderId);
+  if(!bidder) return;
+
+  const usedAccount=String(paymentAccountNumber||"").trim();
+  if(!usedAccount) return;
+
+  sale.paymentAccountNumber=usedAccount;
+
+  const approved=(bidder.approvedPaymentAccounts||[]).includes(usedAccount);
+
+  if(approved){
+    sale.paymentStatus="AWAITING_SELLER_CONFIRMATION";
+  }else{
+    sale.paymentStatus="ON_HOLD";
+    sale.sellerConfirmationDeadline=new Date(Date.now()+28*60*60*1000).toISOString();
+const sale=invoice.lots[lotIndex];
+    bidder.paymentHold=true;
+    bidder.paymentHoldReason="Payment received from unregistered bank account "+usedAccount;
+  }
+
+  save();
+  renderInvoices();
+}
+  function confirmSellerPayment(invoiceId,lotIndex){
   const invoice=(state.invoices||[]).find(inv=>inv.id===invoiceId);
   if(!invoice || !invoice.lots || !invoice.lots[lotIndex]) return;
 const activeSellerId=document.getElementById("sellerSelect")?.value || "";
@@ -2088,12 +2135,37 @@ if(!activeSellerId || activeSellerId!==invoice.lots[lotIndex].sellerId){
   return;
 }
   const sale=invoice.lots[lotIndex];
+  if(
+  sale.paymentStatus==="ON_HOLD" &&
+  sale.sellerConfirmationDeadline &&
+  Date.now()>new Date(sale.sellerConfirmationDeadline).getTime()
+){
+  sale.paymentStatus="ADMIN_REVIEW";
+  alert("The 28-hour seller confirmation period has expired. This payment now requires Admin review.");
+  save();
+  renderInvoices();
+  return;
+}  
   if(sale.sellerPaidConfirmed) return;
 
   const seller=(state.sellers||[]).find(s=>s.id===sale.sellerId);
   if(!seller) return;
+  const bidder=(state.bidders||[]).find(b=>b.id===invoice.bidderId);
+
+if(bidder && sale.paymentAccountNumber){
+  bidder.approvedPaymentAccounts=bidder.approvedPaymentAccounts||[];
+
+  if(!bidder.approvedPaymentAccounts.includes(sale.paymentAccountNumber)){
+    bidder.approvedPaymentAccounts.push(sale.paymentAccountNumber);
+  }
+
+  bidder.paymentHold=false;
+  bidder.paymentHoldReason="";
+}
 
   sale.sellerPaidConfirmed=true;
+  sale.paymentStatus="PAID";
+sale.sellerConfirmationDeadline=null;
   seller.completedSales=Number(seller.completedSales||0)+1;
   seller.totalSalesValue=Number(seller.totalSalesValue||0)+Number(sale.amount||0);
  const commissionAmount=invoice.currency==="ZAR" && Number(sale.amount||0)>2000
@@ -2218,9 +2290,22 @@ checkCommissionReminders();
   return `
     <div>
       ${escapeHtml(x.lot)} - ${inv.currency==="EUR" ? "€" : "R"}${x.amount}
+      ${x.paymentStatus==="ON_HOLD"
+  ? '<div class="notice">⚠️ PAYMENT ON HOLD — unregistered bank account. Seller must confirm receipt within 28 hours.</div>'
+  : ''
+}
+ ${x.paymentStatus==="ON_HOLD" && x.sellerConfirmationDeadline
+  ? '<div class="small">Seller confirmation deadline: '+new Date(x.sellerConfirmationDeadline).toLocaleString()+'</div>'
+  : ''
+}
+${x.paymentStatus==="ADMIN_REVIEW"
+  ? '<div class="notice">⚠️ ADMIN REVIEW REQUIRED — 28-hour seller confirmation period expired.</div>'
+  : ''
+}
+}
       ${x.sellerPaidConfirmed
   ? '<div class="small">✅ SALE COMPLETED — Seller confirmed payment received</div>'
-  : (document.getElementById("sellerSelect")?.value===x.sellerId
+ : (document.getElementById("sellerSelect")?.value===x.sellerId && x.paymentStatus!=="ADMIN_REVIEW"
     ? '<button onclick="confirmSellerPayment(\''+inv.id+'\','+inv.lots.indexOf(x)+')">SELLER CONFIRM PAYMENT RECEIVED</button>'
     : '')
 }
@@ -2297,7 +2382,28 @@ const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
   `;
 }
 
+function renderSiteErrorLog(){
+  const box=document.getElementById("siteErrorLog");
+  if(!box) return;
 
+  const errors=state.siteErrors||[];
+
+  if(errors.length===0){
+    box.innerHTML="No site errors recorded.";
+    return;
+  }
+
+  box.innerHTML=errors.slice().reverse().map(err=>`
+    <div class="notice" style="margin-bottom:8px">
+      <b>${escapeHtml(err.id||"ERROR")}</b><br>
+      Area: ${escapeHtml(err.area||"Unknown")}<br>
+      Error: ${escapeHtml(err.error||"Unknown")}<br>
+      Extra: ${escapeHtml(err.extra||"")}<br>
+      Time: ${escapeHtml(err.createdAt||"")}<br>
+      Status: ${escapeHtml(err.status||"OPEN")}
+    </div>
+  `).join("");
+}
 function deleteLot(id){
   state.lots=state.lots.filter(lot=>lot.id!==id);
   (state.auctions||[]).forEach(auction=>{
@@ -2358,7 +2464,66 @@ document.getElementById("securityProofMsg").textContent=
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 }
+function logSiteError(area,errorText,extra=""){
+  if(window.__loggingSiteError) return;
+window.__loggingSiteError=true;
+  state.siteErrors=state.siteErrors||[];
 
+  state.siteErrors.push({
+    id:"ERR-"+Date.now(),
+    area:area||"Unknown",
+    error:String(errorText||"Unknown error"),
+    extra:String(extra||""),
+    createdAt:new Date().toISOString(),
+    status:"OPEN"
+  });
+const latestError=state.siteErrors[state.siteErrors.length-1];
+notifyAdminWhatsApp(latestError);
+  save();
+  window.__loggingSiteError=false;
+}
+
+ window.addEventListener("error",function(event){
+  logSiteError(
+    "SITE",
+    event.message || "Unknown JavaScript error",
+    (event.filename||"")+" line "+(event.lineno||"")
+  );
+});
+
+window.addEventListener("unhandledrejection",function(event){
+  logSiteError(
+    "ASYNC",
+    event.reason && event.reason.message
+      ? event.reason.message
+      : String(event.reason||"Unhandled promise rejection"),
+    ""
+  );
+});   
+function notifyAdminWhatsApp(errorRecord){
+  const now=Date.now();
+if(window.__lastWhatsAppErrorAlert && now-window.__lastWhatsAppErrorAlert<5*60*1000){
+  return;
+}
+window.__lastWhatsAppErrorAlert=now;
+  const adminNumber="27828699013"; // replace with your WhatsApp number
+
+  const text=
+    "🚨 DREAM CLIVIAS SITE ERROR\n"+
+    "Area: "+(errorRecord.area||"Unknown")+"\n"+
+    "Error: "+(errorRecord.error||"Unknown")+"\n"+
+    "Extra: "+(errorRecord.extra||"")+"\n"+
+    "Time: "+(errorRecord.createdAt||new Date().toISOString());
+
+ try{
+  window.open(
+    "https://wa.me/"+adminNumber+"?text="+encodeURIComponent(text),
+    "_blank"
+  );
+}catch(e){
+  // WhatsApp alert failed to open — error remains saved in Admin log
+}
+}    
 load();
 updateHeader();
 refreshBidderSelect();
