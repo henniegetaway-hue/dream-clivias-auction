@@ -142,7 +142,8 @@ button{
 }
 
 .goldBtn{
-  background:var(--gold);
+  background:linear-gradient(135deg,#eaffb0 0%,#baff66 35%,#7cff3a 55%,#dfff8a 100%);
+  box-shadow:0 0 10px rgba(180,255,90,.45), inset 0 1px 0 rgba(255,255,255,.7);
   color:#111;
   border:0;
   border-radius:11px;
@@ -539,7 +540,7 @@ th,td{
 <div>
   <h3 style="margin-bottom:10px;">Bank Account Verification</h3>
 
-  <button class="goldBtn" onclick="confirmSelectedBidderBank()">
+ <button class="goldBtn" style="margin-top:16px;" onclick="confirmSelectedBidderBank()">
     CONFIRM BANK ACCOUNT
   </button>
 </div>
