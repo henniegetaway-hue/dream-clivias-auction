@@ -2400,7 +2400,7 @@ ${x.sellerPaidConfirmed
       ? '<div class="small">Buyer marked this sale as happy 😊</div>'
       : (inv.bidderId===state.selectedBidderId
     ? '<button onclick="confirmHappyBuyer(\''+inv.id+'\','+inv.lots.indexOf(x)+')">HAPPY WITH SALE 😊</button>'
-    : '')
+   : ''))
   : ''
 }
       ${seller ? `
