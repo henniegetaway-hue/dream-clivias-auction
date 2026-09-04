@@ -521,11 +521,28 @@ th,td{
       <div id="bidderCapacityNotice" class="notice">
   Select a bidder to see bidding capacity.
 </div>
-      <label>Security Fee - Proof of Payment</label>
-<input id="securityProof" type="file" accept="image/*,.pdf">
-<button class="goldBtn" onclick="submitSecurityProof()">SUBMIT PAYMENT PROOF</button>
-<div id="securityProofMsg" class="small"></div>
-<button class="goldBtn" onclick="confirmSelectedBidderBank()">CONFIRM BANK ACCOUNT</button>
+      <div style="margin-top:18px;">
+  <h3 style="margin-bottom:10px;">Security Fee – Proof of Payment</h3>
+
+  <input id="securityProof" type="file" accept="image/*,.pdf"
+         style="display:block;margin-bottom:12px;">
+
+  <button class="goldBtn" onclick="submitSecurityProof()">
+    SUBMIT PAYMENT PROOF
+  </button>
+
+  <div id="securityProofMsg" class="small" style="margin-top:10px;"></div>
+</div>
+
+<hr style="margin:22px 0;opacity:.25;">
+
+<div>
+  <h3 style="margin-bottom:10px;">Bank Account Verification</h3>
+
+  <button class="goldBtn" onclick="confirmSelectedBidderBank()">
+    CONFIRM BANK ACCOUNT
+  </button>
+</div>
 </div>
 </section>
 
