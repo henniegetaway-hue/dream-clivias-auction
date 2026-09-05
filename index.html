@@ -1791,7 +1791,7 @@ const auctionLots=state.lots.filter(lot=>
 );
  if(auctionLots.length===0){
   box.innerHTML=Array.from({length:12},(_,i)=>`
-    <div class="lotCard sampleLot" style="opacity:.38;pointer-events:none;">
+    <div class="lotCard sampleLot" style="pointer-events:none;">
       <div class="lotTop">
         <span>Lot ${String(i+1).padStart(3,"0")}</span>
         <span style="color:#9cff57;font-weight:bold;">LOADING FOR AUCTION</span>
