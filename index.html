@@ -811,12 +811,30 @@ th,td{
     <input id="sellerTown">
     <label>Country</label>
 <input id="sellerCountry" placeholder="e.g. South Africa, United States, United Kingdom, Australia" autocomplete="country-name">
-<label style="margin-top:12px;">
-  <input id="sellerIsExporter" type="checkbox" onchange="toggleExporterDocs()">
-  I am a registered/export-approved seller and want to offer plants for international buyers
+<label style="
+  margin-top:14px;
+  display:block;
+  padding:16px;
+  border:3px solid #ff9800;
+  border-radius:14px;
+  box-shadow:0 0 14px rgba(255,152,0,.65);
+  color:#ffb32c;
+  font-weight:bold;
+  font-size:17px;
+  background:rgba(0,0,0,.35);
+">
+  <input id="sellerIsExporter" type="checkbox" onchange="toggleExporterDocs()" style="width:auto;margin-right:10px;">
+  🌍 I am a registered/export-approved seller and want to offer plants for international buyers
 </label>
 
-<div id="exporterDocsBox" style="display:none;">
+<div id="exporterDocsBox" style="
+  display:none;
+  margin-top:10px;
+  padding:14px;
+  border:2px solid #ff9800;
+  border-radius:12px;
+  background:rgba(0,0,0,.30);
+">
   <label>Upload exporter documentation</label>
   <input id="sellerExporterDocs" type="file" accept=".pdf,.jpg,.jpeg,.png" multiple>
   <label style="margin-top:12px;">
