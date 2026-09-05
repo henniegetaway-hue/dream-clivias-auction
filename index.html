@@ -2587,7 +2587,7 @@ checkCommissionReminders();
      : (inv.status==="PAID"
         ? '<div class="small">Platform fee paid ✅</div>'
         : ''))
-  
+  : ''}
    ${inv.type==="SELLER_COMMISSION" ? "" : (inv.lots||[]).map(x=>{
   const seller=(state.sellers||[]).find(s=>s.id===x.sellerId);
 
