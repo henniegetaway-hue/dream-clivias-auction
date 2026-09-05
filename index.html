@@ -813,6 +813,14 @@ th,td{
     <input id="sellerPhone" placeholder="e.g. +27 82 123 4567">
 
     <label>Email address</label>
+    <label>Business / Nursery Name (optional)</label>
+<input id="sellerBusinessName" placeholder="Business or nursery name">
+
+<label>Company Registration Number (optional)</label>
+<input id="sellerCompanyReg" placeholder="Company registration number">
+
+<label>VAT Number (optional)</label>
+<input id="sellerVatNumber" placeholder="VAT number">
     <input id="sellerEmail" type="email">
 <label>Street / Physical Address</label>
 <input id="sellerAddress" placeholder="Street number and street name">
@@ -1067,8 +1075,8 @@ if(isExporter && (!exporterDocs || exporterDocs.length===0 || !exporterRulesAcce
   alert("Export sellers must upload exporter documentation and accept the export rules before registering.");
   return;
 }
-if(!name || !phone || !email || !address || !suburb || !postal || !country || !accountNumber || !rulesAccepted){
-    alert("Please complete all required seller details, including your bank account number, and accept the Rules & Terms.");
+if(!name || !phone || !email || !address || !suburb || !postal || !document.getElementById("sellerTown").value.trim() || !country || !accountNumber || !rulesAccepted){
+    alert("Please complete all required seller details, including your full physical address, town, country and bank account number, and accept the Rules & Terms.");
     return;
   }
 const duplicateBankUser=[
