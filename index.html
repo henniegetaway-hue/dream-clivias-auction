@@ -774,7 +774,7 @@ th,td{
     <p>8. Sellers must register with correct contact details and a valid bank account number. The seller is responsible for ensuring that all information supplied is accurate and belongs to the registered seller.</p>
     <p>9. The seller's registered bank account number must be confirmed before selling and payment-related functions are enabled. Changes to a confirmed bank account number require Dream Clivias Admin approval.</p>
    <p>10. Seller listing fee: R50 per plant in ZAR auctions and €5 per plant in EUR auctions.</p>
-    <p>11. Seller commission: For ZAR auctions, if a plant sells for more than R2,000, the seller pays Dream Clivias 10% of the winning bid less the R50 listing fee. No commission is charged on sales of R2,000 or less. For EUR auctions, the commission threshold and rate will be determined separately.</p>
+    <p>11. Seller platform fee: For ZAR auctions, if a plant sells for more than R2,000, the seller pays Dream Clivias a platform fee of 10% of the winning bid less the R50 listing fee already paid. No VAT is charged by Dream Clivias.</p>
     <p>12. The seller is responsible for sending the sold plant directly to the winning buyer and for arranging delivery with the buyer. Sellers are encouraged to promote their listed plants using the Facebook, WhatsApp and other sharing options provided by Dream Clivias Auction.</p>
     
     <h3>Plant Photo Rules</h3>
@@ -791,7 +791,7 @@ th,td{
     <p>19. Buyer delivery/contact details are shared only where required to complete a winning order.</p>
     <p>20. Payment for a winning item is made directly by the buyer to the seller. Dream Clivias Auction is not the recipient of the purchase payment.</p>
     <p>21. Any transaction, payment, delivery or other arrangement between a buyer and seller is undertaken at their own risk. Dream Clivias Auction provides the auction platform but is not a party to the sale between the buyer and seller.</p>
-    <p>22. All Dream Clivias Auction platform fees, listing fees, registration/security fees, commission payments and export connection fees are non-refundable once paid.</p>
+    <p>22. All Dream Clivias Auction platform fees, listing fees, registration/security fees, Platform Fees payments and export connection fees are non-refundable once paid.</p>
      <p>23. Dream Clivias Auction may update these rules when necessary. Updated rules may require acceptance again.</p>
 
      <p>24. The bidder and seller/owner are responsible for completing the transaction, payment and delivery arrangements between themselves.</p>
@@ -814,7 +814,14 @@ th,td{
 
     <label>Email address</label>
     <input id="sellerEmail" type="email">
+<label>Street / Physical Address</label>
+<input id="sellerAddress" placeholder="Street number and street name">
 
+<label>Suburb</label>
+<input id="sellerSuburb" placeholder="Suburb">
+
+<label>Postal / ZIP Code</label>
+<input id="sellerPostal" placeholder="Postal / ZIP code">
     <label>Town</label>
     <input id="sellerTown">
     <label>Country</label>
@@ -1039,6 +1046,12 @@ function registerSeller(){
   const name=document.getElementById("sellerName").value.trim();
   const phone=document.getElementById("sellerPhone").value.trim();
   const email=document.getElementById("sellerEmail").value.trim();
+  const businessName=document.getElementById("sellerBusinessName").value.trim();
+const companyReg=document.getElementById("sellerCompanyReg").value.trim();
+const vatNumber=document.getElementById("sellerVatNumber").value.trim();
+  const address=document.getElementById("sellerAddress").value.trim();
+const suburb=document.getElementById("sellerSuburb").value.trim();
+const postal=document.getElementById("sellerPostal").value.trim();
   if(!validPhoneNumber(phone)){
   alert("Please enter a valid phone / WhatsApp number.");
   return;
@@ -1054,7 +1067,7 @@ if(isExporter && (!exporterDocs || exporterDocs.length===0 || !exporterRulesAcce
   alert("Export sellers must upload exporter documentation and accept the export rules before registering.");
   return;
 }
-if(!name || !phone || !email || !country || !accountNumber || !rulesAccepted){
+if(!name || !phone || !email || !address || !suburb || !postal || !country || !accountNumber || !rulesAccepted){
     alert("Please complete all required seller details, including your bank account number, and accept the Rules & Terms.");
     return;
   }
@@ -1094,6 +1107,12 @@ if(duplicatePhoneUser){
     name,
     phone,
     email,
+    businessName,
+companyReg,
+vatNumber,
+address,
+suburb,
+postal,
     town:document.getElementById("sellerTown").value.trim(),
     country:document.getElementById("sellerCountry").value.trim(),
     isExporter:isExporter,
@@ -1807,7 +1826,7 @@ if(unpaidSellerInvoice || unpaidBidderInvoice){
   document.getElementById("lotMsg").textContent=
     unpaidBidderInvoice
       ? "This seller has an unpaid bidder invoice and cannot list another plant until it is paid."
-      : "This seller has an unpaid seller commission invoice and cannot list another plant until it is paid.";
+      : "This seller has an unpaid seller platform fee invoice and cannot list another plant until it is paid.";
   return;
 }
   if(!seller.bankConfirmed){
@@ -2499,7 +2518,7 @@ inv.reminderDue=true;
 }
   function markSellerCommissionPaid(invoiceId){
     if(!document.getElementById("adminArea") || document.getElementById("adminArea").classList.contains("hidden")){
-  alert("Only Admin can mark a seller commission invoice as paid.");
+  alert("Only Admin can mark a seller platform fee invoice as paid.");
   return;
 }
    
@@ -2538,18 +2557,19 @@ checkCommissionReminders();
   box.innerHTML=state.invoices.map(inv=>`
     <div class="panel">
     ${inv.type==="SELLER_COMMISSION"
- ? '<h3>SELLER COMMISSION INVOICE</h3>'+
+ '<h3>DREAM CLIVIAS AUCTION — PLATFORM FEE INVOICE</h3>'+
+'<div class="small"><b>NO VAT CHARGED — Dream Clivias Auction is not VAT registered.</b></div>'+
   '<div>Plant: '+escapeHtml(inv.saleLot||"")+'</div>'+
   '<div>Sale amount: '+(inv.currency==="EUR" ? "€" : "R")+Number(inv.saleAmount||0).toLocaleString()+'</div>'+
- '<div class="small">Commission rule: 10% of winning bid less R50 listing fee, only when sale is above R2,000</div>'+
-      '<div><b>Commission due: R'+Number(inv.amount||0).toLocaleString()+'</b></div>'+
+ '<div class="small">Platform fee rule: 10% of winning bid less R50 listing fee, only when sale is above R2,000</div>'+
+ '<div><b>Platform fee due: R'+Number(inv.amount||0).toLocaleString()+'</b></div>'+
 '<div>Status: <b>'+escapeHtml(inv.status||"UNPAID")+'</b></div>'
  +(inv.reminderDue
   ? '<div class="notice">⚠️ PAYMENT REMINDER '+Number(inv.reminderCount||0)+' OF 3 DUE</div>'
   : '')     
  +(inv.status!=="PAID" && document.getElementById("adminArea") && !document.getElementById("adminArea").classList.contains("hidden")
-  ? '<button onclick="markSellerCommissionPaid(\''+inv.id+'\')">MARK COMMISSION PAID</button>'
-  : (inv.status==="PAID" ? '<div class="small">Commission paid ✅</div>' : ''))
+  ? '<button onclick="markSellerCommissionPaid(\''+inv.id+'\')">MARK PLATFORM FEE PAID</button>'
+  '<div class="small">Platform fee paid ✅</div>'
   : ''
 }
       <h3>${escapeHtml(inv.type==="SELLER_COMMISSION" ? ((state.sellers||[]).find(s=>s.id===inv.sellerId)||{}).name||"Seller" : inv.bidderName)}</h3>
