@@ -2580,10 +2580,7 @@ checkCommissionReminders();
      : (inv.status==="PAID"
         ? '<div class="small">Platform fee paid ✅</div>'
         : ''))
- : ''}
-  : ''
-}
-      <h3>${escapeHtml(inv.type==="SELLER_COMMISSION" ? ((state.sellers||[]).find(s=>s.id===inv.sellerId)||{}).name||"Seller" : inv.bidderName)}</h3>
+  
    ${inv.type==="SELLER_COMMISSION" ? "" : (inv.lots||[]).map(x=>{
   const seller=(state.sellers||[]).find(s=>s.id===x.sellerId);
 
