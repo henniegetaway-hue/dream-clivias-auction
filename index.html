@@ -474,10 +474,12 @@ th,td{
 <input id="regPostal">
 
 <label>Country</label>
-<input id="regCountry" placeholder="e.g. South Africa, USA, UK, Australia">
-<div class="notice">
-  Foreign buyers may pay by international bank transfer. After the auction, the seller will send the winning bidder the final payment instructions directly through Dream Clivias or WhatsApp.
-</div>      
+<input id="regCountry" placeholder="e.g. South Africa, USA, UK, Australia" oninput="updateInternationalBidderNotice()">
+<div id="internationalBidderNotice" class="notice" style="display:none;">
+  <b>INTERNATIONAL BIDDER</b><br>
+  Registration fee: <b>R2,000</b><br>
+  International bidders may only view and bid on plants offered by export sellers.
+</div>     
 
 <label>Bank Account / IBAN Number</label>
 <input id="regAccountNumber">    
@@ -488,13 +490,7 @@ th,td{
 <div class="notice">
   SECURITY: Your bank account number must match the account used for payment verification. You cannot bid until your bank account number has been confirmed.
 </div>
-      <label>Delivery method</label>
-      <select id="regDelivery">
-        <option>PostNet to PostNet</option>
-<option>The Courier Guy</option>
-<option>Collection</option>
-<option>International Courier</option>
-      </select>
+     
 
       <br><br>
       <label style="display:flex;gap:8px;align-items:center;margin:12px 0;">
@@ -638,9 +634,7 @@ th,td{
             <input id="setIncrement" type="number">
           </div>
           <div>
-            <label>Default delivery charge</label>
-            <input id="setDeliveryFee" type="number">
-          </div>
+           
 
           <div>
             <label>Bank name</label>
@@ -674,7 +668,14 @@ th,td{
       <div class="panel">
         <h2>Add Auction Lot</h2>
 <label>Select seller</label>
-<select id="adminSellerSelect"></select>
+<select id="adminSellerSelect" onchange="showSelectedExporterStatus()"></select>
+        <div id="adminExporterStatus" class="notice">
+  Select a seller to review exporter status.
+</div>
+
+<button class="goldBtn" onclick="approveSelectedExporter()">
+  APPROVE EXPORTER
+</button>
         <label>Name / Cross</label>
         <input id="lotName" placeholder="e.g. Green Throat × White Stripe">
         <label>Preferred auction time</label>
@@ -718,7 +719,10 @@ th,td{
 
         <label>Actual plant photo</label>
         <input id="lotPlant" type="file" accept="image/*">
-
+<label style="margin-top:12px;">
+  <input id="lotExportEligible" type="checkbox">
+  This plant is available for international export
+</label>
         <br><br>
         <button class="goldBtn" onclick="addLot()">+ ADD LOT / ROW</button>
         <div id="lotMsg" class="small" style="margin-top:8px"></div>
@@ -807,7 +811,23 @@ th,td{
     <input id="sellerTown">
     <label>Country</label>
 <input id="sellerCountry" placeholder="e.g. South Africa, United States, United Kingdom, Australia" autocomplete="country-name">
+<label style="margin-top:12px;">
+  <input id="sellerIsExporter" type="checkbox" onchange="toggleExporterDocs()">
+  I am a registered/export-approved seller and want to offer plants for international buyers
+</label>
 
+<div id="exporterDocsBox" style="display:none;">
+  <label>Upload exporter documentation</label>
+  <input id="sellerExporterDocs" type="file" accept=".pdf,.jpg,.jpeg,.png" multiple>
+  <label style="margin-top:12px;">
+  <input id="sellerExporterRulesAccepted" type="checkbox">
+  I confirm that I comply with all applicable export rules, permits, documentation and qualification requirements for every country to which I offer plants for export.
+</label>
+  </div>
+  <div class="small">
+    Export sellers must submit supporting export documentation for Dream Clivias Admin approval.
+  </div>
+</div>
     
    
 
@@ -869,7 +889,6 @@ let state = {
   settings:{
     auctionName:"Dream Clivias Live Auction",
     increment:50,
-    deliveryFee:0,
     bank:"",
     accountName:"Dream Clivias",
     accountNumber:"",
@@ -979,7 +998,14 @@ const nextAuction=(state.auctions||[]).filter(a=>a.auctionDate && a.auctionTime 
 document.getElementById("nextAuctionTop").textContent=
   nextAuction ? "Next Auction: "+new Date(nextAuction.auctionDate+"T00:00:00").toLocaleDateString("en-ZA",{day:"numeric",month:"long",year:"numeric"})+" at "+nextAuction.auctionTime
   : "Next Auction: date to be announced";
+function toggleExporterDocs(){
+  const isExporter=document.getElementById("sellerIsExporter").checked;
+  const box=document.getElementById("exporterDocsBox");
 
+  if(!box) return;
+
+  box.style.display=isExporter ? "block" : "none";
+}
 function registerSeller(){
   const name=document.getElementById("sellerName").value.trim();
   const phone=document.getElementById("sellerPhone").value.trim();
@@ -991,6 +1017,14 @@ function registerSeller(){
   const country=document.getElementById("sellerCountry").value.trim();
   const accountNumber=document.getElementById("sellerAccountNumber").value.trim();
 const rulesAccepted=document.getElementById("sellerRulesAccepted").checked;
+  const isExporter=document.getElementById("sellerIsExporter").checked;
+const exporterDocs=document.getElementById("sellerExporterDocs").files;
+const exporterRulesAccepted=document.getElementById("sellerExporterRulesAccepted").checked;
+
+if(isExporter && (!exporterDocs || exporterDocs.length===0 || !exporterRulesAccepted)){
+  alert("Export sellers must upload exporter documentation and accept the export rules before registering.");
+  return;
+}
 if(!name || !phone || !email || !country || !accountNumber || !rulesAccepted){
     alert("Please complete all required seller details, including your bank account number, and accept the Rules & Terms.");
     return;
@@ -1033,6 +1067,10 @@ if(duplicatePhoneUser){
     email,
     town:document.getElementById("sellerTown").value.trim(),
     country:document.getElementById("sellerCountry").value.trim(),
+    isExporter:isExporter,
+exporterDocsSubmitted:isExporter && exporterDocs.length>0,
+exporterRulesAccepted:isExporter ? exporterRulesAccepted : false,
+exporterApproved:false,
     accountNumber,
 bankConfirmed:false,
     completedSales:0,
@@ -1066,6 +1104,61 @@ adminSelect.innerHTML='<option value="">Select seller</option>';
   });
     adminSelect.value="";
 }
+  function showSelectedExporterStatus(){
+  const sellerId=document.getElementById("adminSellerSelect").value;
+  const seller=(state.sellers||[]).find(s=>s.id===sellerId);
+  const status=document.getElementById("adminExporterStatus");
+
+  if(!status) return;
+
+  if(!seller){
+    status.textContent="Select a seller to review exporter status.";
+    return;
+  }
+
+  if(!seller.isExporter){
+    status.textContent="This seller is not registered as an export seller.";
+    return;
+  }
+
+  if(seller.exporterApproved){
+    status.textContent="✅ EXPORTER APPROVED: "+seller.name;
+    return;
+  }
+
+  status.textContent="Exporter application waiting for Admin approval.";
+}
+  function approveSelectedExporter(){
+  const sellerId=document.getElementById("adminSellerSelect").value;
+  const seller=(state.sellers||[]).find(s=>s.id===sellerId);
+  const status=document.getElementById("adminExporterStatus");
+
+  if(!seller){
+    alert("Please select a seller first.");
+    return;
+  }
+
+  if(!seller.isExporter){
+    alert("This seller did not register as an export seller.");
+    return;
+  }
+
+  if(!seller.exporterDocsSubmitted || !seller.exporterRulesAccepted){
+    alert("Exporter documents and export-rules acceptance are required before approval.");
+    return;
+  }
+
+  seller.exporterApproved=true;
+  seller.exporterApprovedDate=new Date().toISOString();
+
+  save();
+
+  if(status){
+    status.textContent="✅ EXPORTER APPROVED: "+seller.name;
+  }
+
+  alert("Exporter approved successfully.");
+}
    function selectSeller(){
   const sellerId=document.getElementById("sellerSelect").value;
   const seller=(state.sellers||[]).find(s=>s.id===sellerId);
@@ -1089,6 +1182,18 @@ adminSelect.innerHTML='<option value="">Select seller</option>';
 
   alert("Seller bank account confirmed.");
 }
+  function updateInternationalBidderNotice(){
+  const country=(document.getElementById("regCountry").value||"").trim().toLowerCase();
+  const notice=document.getElementById("internationalBidderNotice");
+  if(!notice) return;
+
+  const isSouthAfrica=
+    country==="south africa" ||
+    country==="sa" ||
+    country==="rsa";
+
+  notice.style.display = country && !isSouthAfrica ? "block" : "none";
+}
   function registerBidder(){
   const name=document.getElementById("regName").value.trim();
   const phone=document.getElementById("regPhone").value.trim();
@@ -1100,6 +1205,14 @@ if(!validPhoneNumber(phone)){
 const suburb=document.getElementById("regSuburb").value.trim();
 const postal=document.getElementById("regPostal").value.trim();
 const country=document.getElementById("regCountry").value.trim();
+ const normalizedCountry=country.toLowerCase();
+
+const isSouthAfrica=
+  normalizedCountry==="south africa" ||
+  normalizedCountry==="sa" ||
+  normalizedCountry==="rsa";
+
+const isInternational=!isSouthAfrica;   
 const accountNumber=document.getElementById("regAccountNumber").value.trim();
 const defaultNumber=document.getElementById("regDefaultNumber").value.trim();
 const rulesAccepted=document.getElementById("regRulesAccepted").checked;
@@ -1144,6 +1257,10 @@ if(duplicatePhoneUser){
     id:"B"+Date.now(),
     name,
     phone,
+    country:country,
+isInternational:isInternational,
+internationalRegistrationFee:isInternational ? 2000 : 0,
+    internationalRegistrationPaid:!isInternational,
     email:document.getElementById("regEmail").value.trim(),
     town:document.getElementById("regTown").value.trim(),
     province:document.getElementById("regProvince").value,
@@ -1162,7 +1279,6 @@ paymentHoldReason:"",
     rulesAccepted:true,
 rulesAcceptedDate:new Date().toISOString(),
     notifyNextAuction:document.getElementById("regNotifyNextAuction").value,
-   delivery:document.getElementById("regDelivery").value,
    securityFeesPaidZAR:0,
 securityFeesPaidEUR:0,
     securityProofStatus:"NONE",
@@ -1559,7 +1675,6 @@ const slot=getNextAuctionSlot(preferredTime);
 function fillSettings(){
   document.getElementById("setAuctionName").value=state.settings.auctionName;
   document.getElementById("setIncrement").value=state.settings.increment;
-  document.getElementById("setDeliveryFee").value=state.settings.deliveryFee;
   document.getElementById("setBank").value=state.settings.bank||"";
   document.getElementById("setAccountName").value=state.settings.accountName||"";
  document.getElementById("setAccountNumber").value=state.settings.accountNumber||"";
@@ -1605,6 +1720,13 @@ async function addLot(){
 const seller=(state.sellers||[]).find(s=>s.id===sellerId);
   if(!seller){
   document.getElementById("lotMsg").textContent="Please select a seller first.";
+  return;
+}
+  const exportEligible=document.getElementById("lotExportEligible").checked;
+
+if(exportEligible && !seller.exporterApproved){
+  document.getElementById("lotMsg").textContent=
+    "Only an approved export seller may mark a plant as available for international export.";
   return;
 }
   if(!auction){
@@ -1678,6 +1800,7 @@ if(unpaidSellerInvoice || unpaidBidderInvoice){
     id:"L"+Date.now(),
     auctionId:auction.id,
     sellerId:sellerId,
+    exportEligible:exportEligible,
     listingFee:listingFee,
 listingCurrency:listingCurrency,
     lotNumber:(auction.lots||[]).length+1,
@@ -1708,6 +1831,7 @@ scheduleAuctionAtHalfFull(auction);
 
   document.getElementById("lotFlower").value="";
   document.getElementById("lotPlant").value="";
+  document.getElementById("lotExportEligible").checked=false;
   document.getElementById("lotAuctionTime").value="";
   document.getElementById("lotMsg").textContent=
   "Lot added. Listing fee: " +
@@ -1786,9 +1910,19 @@ function renderLots(){
   const box=document.getElementById("lotsGrid");
   const auction=(state.auctions||[]).find(a=>a.id===state.selectedAuctionId);
 const currencySymbol=auction && auction.currency==="EUR" ? "€" : "R";
-const auctionLots=state.lots.filter(lot=>
-  lot.auctionId===state.selectedAuctionId
+const viewerBidder=(state.bidders||[]).find(
+  b=>b.id===state.selectedBidderId
 );
+
+const auctionLots=state.lots.filter(lot=>{
+  if(lot.auctionId!==state.selectedAuctionId) return false;
+
+  if(viewerBidder && viewerBidder.isInternational){
+    return lot.exportEligible===true;
+  }
+
+  return true;
+});
  if(auctionLots.length===0){
   box.innerHTML=Array.from({length:12},(_,i)=>`
     <div class="lotCard sampleLot" style="pointer-events:none;">
@@ -1877,6 +2011,11 @@ const displayLots=[
 
       <div class="lotBody">
         <div class="lotName">${escapeHtml(lot.name)}</div>
+        ${lot.exportEligible ? `
+  <div class="notice" style="margin:8px 0;">
+    🌍 INTERNATIONAL / EXPORT ELIGIBLE
+  </div>
+` : ''}
        ${seller ? `
  <div style="margin-top:6px;font-size:15px;font-weight:bold">
   Seller: ${escapeHtml(seller.name)}
@@ -1987,6 +2126,14 @@ if(auction && auction.auctionDate && auction.auctionCloseTime && lot){
   if(!bidder){
   alert("Please register or select a bidder first.");
   showPage("register");
+  return;
+}
+  if(bidder.isInternational && !bidder.internationalRegistrationPaid){
+  alert("International bidders must pay the R2,000 registration fee before bidding.");
+  return;
+}
+  if(bidder.isInternational && !lot.exportEligible){
+  alert("International bidders may only bid on export-eligible plants.");
   return;
 }
   if(!bidder.bankConfirmed){
@@ -2148,6 +2295,7 @@ if(alreadyCreated) return;
         bidderTown:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).town||"",
         bidderProvince:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).province||"",
         bidderCountry:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).country||"",
+        deliveryMethod:"",
         bidderAddress:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).address||"",
         bidderSuburb:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).suburb||"",
         bidderCountry:(state.bidders.find(b=>b.id===winningBid.bidderId)||{}).country||"",
@@ -2336,7 +2484,21 @@ invoice.nextReminderAt=null;
   save();
   renderInvoices();
 }
-function renderInvoices(){
+function setWinningDeliveryMethod(invoiceId,method){
+  const invoice=(state.invoices||[]).find(inv=>inv.id===invoiceId);
+
+  if(!invoice) return;
+
+  if(invoice.bidderId!==state.selectedBidderId){
+    alert("Only the winning bidder can choose the delivery method.");
+    return;
+  }
+
+  invoice.deliveryMethod=method;
+  save();
+  renderInvoices();
+}
+  function renderInvoices(){
   const box=document.getElementById("invoiceList");
 checkCommissionReminders();
   if(!state.invoices || state.invoices.length===0){
@@ -2409,6 +2571,15 @@ Town / City: ${escapeHtml(inv.bidderTown||"")}<br>
 Postal Code: ${escapeHtml(inv.bidderPostalCode||"")}<br>
 Province / Region: ${escapeHtml(inv.bidderProvince||"")}<br>
 Country: ${escapeHtml(inv.bidderCountry||"")}<br>
+<label style="margin-top:10px;">Choose delivery method</label>
+<select onchange="setWinningDeliveryMethod('${inv.id}',this.value)">
+  <option value="">— Select delivery method —</option>
+  <option value="PostNet to PostNet" ${inv.deliveryMethod==="PostNet to PostNet" ? "selected" : ""}>PostNet to PostNet</option>
+  <option value="The Courier Guy" ${inv.deliveryMethod==="The Courier Guy" ? "selected" : ""}>The Courier Guy</option>
+  <option value="Collection" ${inv.deliveryMethod==="Collection" ? "selected" : ""}>Collection</option>
+  <option value="International Courier" ${inv.deliveryMethod==="International Courier" ? "selected" : ""}>International Courier</option>
+</select>
+<br>
 Postal Code: ${escapeHtml(inv.bidderPostalCode||"")}<br>
 Please confirm that the payment details come from the correct seller.<br>
 The seller may send the payment instructions through Dream Clivias or WhatsApp.
