@@ -453,16 +453,17 @@ th,td{
         <div>
           <label>Email (optional)</label>
           <input id="regEmail">
+          <label>Business / Nursery Name (optional)</label>
+<input id="regBusinessName" placeholder="Business or nursery name">
+
+<label>Company Registration Number (optional)</label>
+<input id="regCompanyReg" placeholder="Company registration number">
+
+<label>VAT Number (optional)</label>
+<input id="regVatNumber" placeholder="VAT number">
         </div>
         <div>
           <label>Street / Physical Address</label>
-<input id="sellerAddress" placeholder="Street number and street name">
-
-<label>Suburb</label>
-<input id="sellerSuburb">
-
-<label>Postal / ZIP Code</label>
-<input id="sellerPostal">
           <label>Town</label>
           <input id="regTown">
         </div>
@@ -1253,6 +1254,9 @@ adminSelect.innerHTML='<option value="">Select seller</option>';
   function registerBidder(){
   const name=document.getElementById("regName").value.trim();
   const phone=document.getElementById("regPhone").value.trim();
+    const businessName=document.getElementById("regBusinessName").value.trim();
+const companyReg=document.getElementById("regCompanyReg").value.trim();
+const vatNumber=document.getElementById("regVatNumber").value.trim();
 if(!validPhoneNumber(phone)){
   alert("Please enter a valid phone / WhatsApp number.");
   return;
@@ -1313,6 +1317,9 @@ if(duplicatePhoneUser){
     id:"B"+Date.now(),
     name,
     phone,
+    businessName,
+companyReg,
+vatNumber,
     country:country,
 isInternational:isInternational,
 internationalRegistrationFee:isInternational ? 2000 : 0,
