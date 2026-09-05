@@ -1639,7 +1639,9 @@ const seller=(state.sellers||[]).find(s=>s.id===sellerId);
   alert("The "+preferredAuctionTime+" auction slot is not available yet. Please choose Automatic / next available.");
   return;
 }
-  
+}
+
+
   const listingCurrency=auction && auction.currency==="EUR" ? "EUR" : "ZAR";
 const listingFee=listingCurrency==="EUR" ? 5 : 50;
    
