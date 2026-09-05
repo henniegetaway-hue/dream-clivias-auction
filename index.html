@@ -2566,18 +2566,21 @@ checkCommissionReminders();
     <div class="panel">
     ${inv.type==="SELLER_COMMISSION"
  ? '<h3>DREAM CLIVIAS AUCTION — PLATFORM FEE INVOICE</h3>'+
-'<div class="small"><b>NO VAT CHARGED — Dream Clivias Auction is not VAT registered.</b></div>'+
-  '<div>Plant: '+escapeHtml(inv.saleLot||"")+'</div>'+
-  '<div>Sale amount: '+(inv.currency==="EUR" ? "€" : "R")+Number(inv.saleAmount||0).toLocaleString()+'</div>'+
- '<div class="small">Platform fee rule: 10% of winning bid less R50 listing fee, only when sale is above R2,000</div>'+
- '<div><b>Platform fee due: R'+Number(inv.amount||0).toLocaleString()+'</b></div>'+
-'<div>Status: <b>'+escapeHtml(inv.status||"UNPAID")+'</b></div>'
- +(inv.reminderDue
-  ? '<div class="notice">⚠️ PAYMENT REMINDER '+Number(inv.reminderCount||0)+' OF 3 DUE</div>'
-  : '')     
- +(inv.status!=="PAID" && document.getElementById("adminArea") && !document.getElementById("adminArea").classList.contains("hidden")
-  ? '<button onclick="markSellerCommissionPaid(\''+inv.id+'\')">MARK PLATFORM FEE PAID</button>'
-  '<div class="small">Platform fee paid ✅</div>'
+   '<div class="small"><b>NO VAT CHARGED — Dream Clivias Auction is not VAT registered.</b></div>'+
+   '<div>Plant: '+escapeHtml(inv.saleLot||"")+'</div>'+
+   '<div>Sale amount: '+(inv.currency==="EUR" ? "€" : "R")+Number(inv.saleAmount||0).toLocaleString()+'</div>'+
+   '<div class="small">Platform fee rule: 10% of winning bid less R50 listing fee, only when sale is above R2,000</div>'+
+   '<div><b>Platform fee due: R'+Number(inv.amount||0).toLocaleString()+'</b></div>'+
+   '<div>Status: <b>'+escapeHtml(inv.status||"UNPAID")+'</b></div>'+
+   (inv.reminderDue
+     ? '<div class="notice">⚠️ PAYMENT REMINDER '+Number(inv.reminderCount||0)+' OF 3 DUE</div>'
+     : '')+
+   (inv.status!=="PAID" && document.getElementById("adminArea") && !document.getElementById("adminArea").classList.contains("hidden")
+     ? '<button onclick="markSellerCommissionPaid(\''+inv.id+'\')">MARK PLATFORM FEE PAID</button>'
+     : (inv.status==="PAID"
+        ? '<div class="small">Platform fee paid ✅</div>'
+        : ''))
+ : ''}
   : ''
 }
       <h3>${escapeHtml(inv.type==="SELLER_COMMISSION" ? ((state.sellers||[]).find(s=>s.id===inv.sellerId)||{}).name||"Seller" : inv.bidderName)}</h3>
