@@ -2565,7 +2565,7 @@ checkCommissionReminders();
   box.innerHTML=state.invoices.map(inv=>`
     <div class="panel">
     ${inv.type==="SELLER_COMMISSION"
- '<h3>DREAM CLIVIAS AUCTION — PLATFORM FEE INVOICE</h3>'+
+ ? '<h3>DREAM CLIVIAS AUCTION — PLATFORM FEE INVOICE</h3>'+
 '<div class="small"><b>NO VAT CHARGED — Dream Clivias Auction is not VAT registered.</b></div>'+
   '<div>Plant: '+escapeHtml(inv.saleLot||"")+'</div>'+
   '<div>Sale amount: '+(inv.currency==="EUR" ? "€" : "R")+Number(inv.saleAmount||0).toLocaleString()+'</div>'+
