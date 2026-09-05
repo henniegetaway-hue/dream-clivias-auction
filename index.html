@@ -441,6 +441,20 @@ th,td{
     <div class="panel">
       <h2>Bidder Registration</h2>
       <p>Register once before bidding.</p>
+      <div style="
+  margin:12px 0;
+  padding:14px;
+  border:2px solid #ff9800;
+  border-radius:12px;
+  background:rgba(255,152,0,.10);
+">
+  <label style="font-weight:bold;">REGISTER AS</label>
+
+  <select id="regEntityType" onchange="toggleBidderBusinessFields()">
+    <option value="PRIVATE">Private Individual</option>
+    <option value="COMPANY">Company / CC</option>
+  </select>
+</div>
 
       <label>Full name</label>
       <input id="regName" placeholder="e.g. Johan Smit">
@@ -453,6 +467,7 @@ th,td{
         <div>
           <label>Email (optional)</label>
           <input id="regEmail">
+          <div id="bidderBusinessFields" style="display:none;">
           <label>Business / Nursery Name (optional)</label>
 <input id="regBusinessName" placeholder="Business or nursery name">
 
@@ -575,13 +590,60 @@ th,td{
 
   <div id="adminLogin" class="panel" style="max-width:430px;margin:auto">
     <h2>Admin Access</h2>
-    <p>Test password: <b>1234</b></p>
     <input id="adminPassword" type="password" placeholder="Password">
     <br><br>
     <button class="goldBtn" onclick="openAdmin()">OPEN ADMIN</button>
     <div id="adminLoginMsg" class="small" style="margin-top:8px"></div>
-  </div>
+    </div>
+  <div id="ownerArea" class="hidden">
+  <div class="panel">
+    <h2>Dream Clivias Owner Control</h2>
+    <p><b>OWNER ONLY</b> — Private Dream Clivias settings and payment information.</p>
+    <h3>Dream Clivias Bank Details</h3>
 
+
+
+<br><br>
+<button class="goldBtn" onclick="saveOwnerBankDetails()">SAVE BANK DETAILS</button>
+
+<div id="ownerBankMsg" class="small" style="margin-top:8px;"></div>
+
+<br><br>
+<h3>Dream Clivias Bank Details</h3>
+
+<label>Bank name</label>
+<input id="ownerBank" placeholder="Bank name">
+
+<label>Account name</label>
+<input id="ownerAccountName" placeholder="Account name">
+
+<label>Account number</label>
+<input id="ownerAccountNumber" placeholder="Account number">
+
+<label>Branch code</label>
+<input id="ownerBranchCode" placeholder="Branch code">
+
+<br><br>
+<button class="goldBtn" onclick="saveOwnerBankDetails()">SAVE BANK DETAILS</button>
+
+<div id="ownerBankMsg" class="small" style="margin-top:8px;"></div>
+
+<br><br>
+    <button class="goldBtn" onclick="closeOwner()">CLOSE OWNER</button>
+  </div>
+</div>
+  </div>
+<div id="ownerLogin" class="panel" style="max-width:430px;margin:12px auto;">
+  <h2>Owner Access</h2>
+  <p>Dream Clivias Owner Only</p>
+
+  <input id="ownerPassword" type="password" placeholder="Owner Password">
+  <br><br>
+
+  <button class="goldBtn" onclick="openOwner()">OPEN OWNER</button>
+
+  <div id="ownerLoginMsg" class="small" style="margin-top:8px"></div>
+</div>
   <div id="adminArea" class="hidden">
     <button class="goldBtn" onclick="toggleRulesVisibility()">SHOW / HIDE RULES</button>
     <div class="grid2">
@@ -646,22 +708,7 @@ th,td{
            
 
           <div>
-            <label>Bank name</label>
-            <input id="setBank">
-          </div>
-          <div>
-            <label>Account name</label>
-            <input id="setAccountName">
-          </div>
-
-          <div>
-            <label>Account number</label>
-            <input id="setAccountNumber">
-          </div>
-          <div>
-            <label>Branch code</label>
-            <input id="setBranchCode">
-          </div>
+            
         </div>
 
         <br>
@@ -806,6 +853,19 @@ th,td{
   <div class="panel">
     <h2>Seller Registration</h2>
     <p>Register as a seller to offer your Clivias on Dream Clivias Auction.</p>
+    <label>Register as</label>
+  function toggleBidderBusinessFields(){
+  const type=document.getElementById("regEntityType").value;
+  const box=document.getElementById("bidderBusinessFields");
+
+  if(!box) return;
+
+  box.style.display=type==="COMPANY" ? "block" : "none";
+}  
+<select id="sellerEntityType" onchange="toggleSellerBusinessFields()">
+  <option value="PRIVATE">Private Individual</option>
+  <option value="COMPANY">Company / CC</option>
+</select>
 
     <label>Full name</label>
     <input id="sellerName" placeholder="Full name">
@@ -814,6 +874,7 @@ th,td{
     <input id="sellerPhone" placeholder="e.g. +27 82 123 4567">
 
     <label>Email address</label>
+    <div id="sellerBusinessFields" style="display:none;">
     <label>Business / Nursery Name (optional)</label>
 <input id="sellerBusinessName" placeholder="Business or nursery name">
 
@@ -822,6 +883,7 @@ th,td{
 
 <label>VAT Number (optional)</label>
 <input id="sellerVatNumber" placeholder="VAT number">
+    </div>  
     <input id="sellerEmail" type="email">
 <label>Street / Physical Address</label>
 <input id="sellerAddress" placeholder="Street number and street name">
@@ -1043,7 +1105,15 @@ const nextAuction=(state.auctions||[]).filter(a=>a.auctionDate && a.auctionTime 
 document.getElementById("nextAuctionTop").textContent=
   nextAuction ? "Next Auction: "+new Date(nextAuction.auctionDate+"T00:00:00").toLocaleDateString("en-ZA",{day:"numeric",month:"long",year:"numeric"})+" at "+nextAuction.auctionTime
   : "Next Auction: date to be announced";
-function toggleExporterDocs(){
+function toggleSellerBusinessFields(){
+  const type=document.getElementById("sellerEntityType").value;
+  const box=document.getElementById("sellerBusinessFields");
+
+  if(!box) return;
+
+  box.style.display=type==="COMPANY" ? "block" : "none";
+}
+  function toggleExporterDocs(){
   const isExporter=document.getElementById("sellerIsExporter").checked;
   const box=document.getElementById("exporterDocsBox");
 
@@ -1058,6 +1128,12 @@ function registerSeller(){
   const businessName=document.getElementById("sellerBusinessName").value.trim();
 const companyReg=document.getElementById("sellerCompanyReg").value.trim();
 const vatNumber=document.getElementById("sellerVatNumber").value.trim();
+  const entityType=document.getElementById("sellerEntityType").value;
+
+if(entityType==="COMPANY" && (!businessName || !companyReg)){
+  alert("Company / CC sellers must enter the business name and company registration number.");
+  return;
+}
   const address=document.getElementById("sellerAddress").value.trim();
 const suburb=document.getElementById("sellerSuburb").value.trim();
 const postal=document.getElementById("sellerPostal").value.trim();
@@ -1076,8 +1152,8 @@ if(isExporter && (!exporterDocs || exporterDocs.length===0 || !exporterRulesAcce
   alert("Export sellers must upload exporter documentation and accept the export rules before registering.");
   return;
 }
-if(!name || !phone || !email || !address || !suburb || !postal || !document.getElementById("sellerTown").value.trim() || !country || !accountNumber || !rulesAccepted){
-    alert("Please complete all required seller details, including your full physical address, town, country and bank account number, and accept the Rules & Terms.");
+if(!name || !phone || !email || !address || !suburb || !postal || !country || !accountNumber || !rulesAccepted){
+    alert("Please complete all required seller details, including your full physical address, country and bank account number, and accept the Rules & Terms.");
     return;
   }
 const duplicateBankUser=[
@@ -1116,6 +1192,7 @@ if(duplicatePhoneUser){
     name,
     phone,
     email,
+    entityType,
     businessName,
 companyReg,
 vatNumber,
@@ -1257,6 +1334,13 @@ adminSelect.innerHTML='<option value="">Select seller</option>';
     const businessName=document.getElementById("regBusinessName").value.trim();
 const companyReg=document.getElementById("regCompanyReg").value.trim();
 const vatNumber=document.getElementById("regVatNumber").value.trim();
+ const entityType=document.getElementById("regEntityType").value;
+
+if(entityType==="COMPANY" && (!businessName || !companyReg)){
+  document.getElementById("regMsg").textContent=
+    "Company / CC bidders must enter the business name and company registration number.";
+  return;
+}   
 if(!validPhoneNumber(phone)){
   alert("Please enter a valid phone / WhatsApp number.");
   return;
@@ -1317,6 +1401,7 @@ if(duplicatePhoneUser){
     id:"B"+Date.now(),
     name,
     phone,
+    entityType,
     businessName,
 companyReg,
 vatNumber,
@@ -1444,6 +1529,46 @@ function openAdmin(){
   }else{
     document.getElementById("adminLoginMsg").textContent="Incorrect password.";
   }
+}
+  function openOwner(){
+  const entered=document.getElementById("ownerPassword").value;
+
+  if(!entered){
+    document.getElementById("ownerLoginMsg").textContent="Please enter the Owner password.";
+    return;
+  }
+document.getElementById("ownerBank").value=state.settings.bank||"";
+document.getElementById("ownerAccountName").value=state.settings.accountName||"";
+document.getElementById("ownerAccountNumber").value=state.settings.accountNumber||"";
+  document.getElementById("ownerLogin").classList.add("hidden");
+  document.getElementById("ownerArea").classList.remove("hidden");
+  document.getElementById("ownerLoginMsg").textContent="";
+}
+
+function closeOwner(){
+  document.getElementById("ownerArea").classList.add("hidden");
+  document.getElementById("ownerLogin").classList.remove("hidden");
+  document.getElementById("ownerPassword").value="";
+}
+  function saveOwnerBankDetails(){
+  const bank=document.getElementById("ownerBank").value.trim();
+  const accountName=document.getElementById("ownerAccountName").value.trim();
+  const accountNumber=document.getElementById("ownerAccountNumber").value.trim();
+
+  if(!bank || !accountName || !accountNumber){
+    document.getElementById("ownerBankMsg").textContent=
+      "Please complete Bank name, Account name and Account number.";
+    return;
+  }
+
+  state.settings.bank=bank;
+  state.settings.accountName=accountName;
+  state.settings.accountNumber=accountNumber;
+
+  save();
+
+  document.getElementById("ownerBankMsg").textContent=
+    "Dream Clivias bank details saved.";
 }
  function selectAdminAuction(){
   const auctionId=document.getElementById("adminAuctionSelect").value;
@@ -1738,22 +1863,12 @@ const slot=getNextAuctionSlot(preferredTime);
 function fillSettings(){
   document.getElementById("setAuctionName").value=state.settings.auctionName;
   document.getElementById("setIncrement").value=state.settings.increment;
-  document.getElementById("setBank").value=state.settings.bank||"";
-  document.getElementById("setAccountName").value=state.settings.accountName||"";
- document.getElementById("setAccountNumber").value=state.settings.accountNumber||"";
-  document.getElementById("setBranchCode").value=state.settings.branchCode||"";
- 
+   
 }
 
 function saveSettings(){
   state.settings.auctionName=document.getElementById("setAuctionName").value.trim() || "Dream Clivias Live Auction";
   state.settings.increment=Number(document.getElementById("setIncrement").value)||50;
-  state.settings.deliveryFee=Number(document.getElementById("setDeliveryFee").value)||0;
-  state.settings.accountNumber=document.getElementById("setAccountNumber").value.trim();
-  state.settings.bank=document.getElementById("setBank").value.trim();
-  state.settings.accountName=document.getElementById("setAccountName").value.trim();
-  state.settings.branchCode=document.getElementById("setBranchCode").value.trim();
- 
   
   
 
@@ -2574,6 +2689,10 @@ checkCommissionReminders();
     ${inv.type==="SELLER_COMMISSION"
   ? '<h3>DREAM CLIVIAS AUCTION — PLATFORM FEE INVOICE</h3>'+
     '<div class="small"><b>NO VAT CHARGED — Dream Clivias Auction is not VAT registered.</b></div>'+
+      '<div><b>Payment details:</b></div>'+
+'<div>Bank: '+escapeHtml(state.settings.bank||"")+'</div>'+
+'<div>Account name: '+escapeHtml(state.settings.accountName||"")+'</div>'+
+'<div>Account number: '+escapeHtml(state.settings.accountNumber||"")+'</div>'+
     '<div>Plant: '+escapeHtml(inv.saleLot||"")+'</div>'+
     '<div>Sale amount: '+(inv.currency==="EUR" ? "€" : "R")+Number(inv.saleAmount||0).toLocaleString()+'</div>'+
     '<div class="small">Platform fee rule: 10% of winning bid less R50 listing fee, only when sale is above R2,000</div>'+
